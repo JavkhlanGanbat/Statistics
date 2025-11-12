@@ -16,12 +16,10 @@ results/
 data/*.csv
 data/*.xlsx
 
-.DS_Store
 Thumbs.db
 
 *.swp
 *.swo
-*.idea/
 *.vscode/
 
 *.egg
