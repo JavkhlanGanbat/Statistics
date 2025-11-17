@@ -17,9 +17,7 @@ Then, activate it
     source statproj/bin/activate
 ```
 
-```plaintext
-    (statproj) username@pc: ~/ProjectRoot/statproj$
-```
+(statproj) username@pc: ~/ProjectRoot/statproj$
 
 Your project should look something like the following:
 
