@@ -1,58 +1,68 @@
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 
-from utils import load_data, save_model
+from utils import save_model
 from preprocess import build_preprocessor
+from logistic_regression import LogisticRegressionCustom
 
 def train():
-
-    df = load_data(split="train")
-
-    if "fnlwgt" in df.columns:
-        df = df.drop(columns=["fnlwgt"])
-
-    X = df.drop(columns=["income_>50K"])
-    y = df["income_>50K"]
-
-    # Split data into train and validation sets
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-
-    print(f"Training set size: {len(X_train)}")
-    print(f"Validation set size: {len(X_val)}")
-
+    # Load the pre-split data
+    print("Loading training data...")
+    train_df = pd.read_csv("../data/train_split.csv")
+    val_df = pd.read_csv("../data/val_split.csv")
+    
+    X_train = train_df.drop(columns=["income_>50K"])
+    y_train = train_df["income_>50K"]
+    
+    X_val = val_df.drop(columns=["income_>50K"])
+    y_val = val_df["income_>50K"]
+    
+    print(f"Training samples: {len(X_train)}")
+    print(f"Validation samples: {len(X_val)}")
+    
+    # Build preprocessor and fit on training data
+    print("\nPreprocessing data...")
     preprocessor = build_preprocessor()
-
+    X_train_processed = preprocessor.fit_transform(X_train)
+    X_val_processed = preprocessor.transform(X_val)
+    
+    # Train our custom logistic regression
+    print("\nTraining custom Logistic Regression...")
+    print("=" * 60)
+    
+    logreg = LogisticRegressionCustom(
+        learning_rate=0.1,
+        max_iter=1000,
+        tol=1e-4,
+        verbose=True
+    )
+    
+    logreg.fit(X_train_processed, y_train.values)
+    
+    # Create pipeline for easy deployment
     model = Pipeline(steps=[
         ("preprocess", preprocessor),
-        ("logreg", LogisticRegression(max_iter=1000, random_state=42))
+        ("logreg", logreg)
     ])
-
-    print("\nTraining model...")
-    model.fit(X_train, y_train)
     
     # Evaluate on validation set
-    print("\n=== Model Evaluation on Validation Set ===")
-    y_pred = model.predict(X_val)
+    print("\n" + "=" * 60)
+    print("VALIDATION SET EVALUATION")
+    print("=" * 60)
+    
+    y_pred = logreg.predict(X_val_processed)
     
     print(f"Accuracy:  {accuracy_score(y_val, y_pred):.4f}")
     print(f"Precision: {precision_score(y_val, y_pred):.4f}")
     print(f"Recall:    {recall_score(y_val, y_pred):.4f}")
     print(f"F1 Score:  {f1_score(y_val, y_pred):.4f}")
     
-    print("\nConfusion Matrix:")
-    print(confusion_matrix(y_val, y_pred))
-    
     print("\nClassification Report:")
     print(classification_report(y_val, y_pred, target_names=['<=50K', '>50K']))
     
     save_model(model)
-
-    print("\nModel trained and saved successfully.")
+    print("\n✓ Model trained and saved successfully!")
 
 if __name__ == "__main__":
     train()
