@@ -18,7 +18,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 from utils import save_model
 from preprocess import build_preprocessor
-from logistic_regression import LogisticRegressionCustom
+from logistic_regression import LogisticRegression
 
 def train():
     """
@@ -46,9 +46,6 @@ def train():
     X_val = val_df.drop(columns=["income_>50K"])
     y_val = val_df["income_>50K"]
     
-    print(f"Training samples: {len(X_train)}")
-    print(f"Validation samples: {len(X_val)}")
-    
     # --- STEP 2: PREPROCESS FEATURES ---
     # Build preprocessor: StandardScaler for numbers, OneHotEncoder for categories
     print("\nPreprocessing data...")
@@ -61,15 +58,15 @@ def train():
     X_val_processed = preprocessor.transform(X_val)
     
     # --- STEP 3: TRAIN CUSTOM MODEL ---
-    print("\nTraining custom Logistic Regression...")
-    print("=" * 60)
+    print("\nTraining model...")
     
-    # Initialize our custom implementation
-    logreg = LogisticRegressionCustom(
-        learning_rate=0.1,  # Step size for gradient descent
-        max_iter=1000,      # Maximum training iterations
-        tol=1e-4,           # Convergence threshold
-        verbose=True        # Print training progress
+    # Initialize our custom implementation with optimized hyperparameters
+    logreg = LogisticRegression(
+        learning_rate=0.5,     # Higher initial learning rate (will decay)
+        max_iter=1000,         # Maximum training iterations
+        tol=1e-4,              # Convergence threshold
+        reg_lambda=0.01,       # L2 regularization strength
+        lr_decay=0.001,        # Learning rate decay factor
     )
     
     # Train using gradient descent
@@ -83,24 +80,11 @@ def train():
     ])
     
     # --- STEP 5: EVALUATE ON VALIDATION SET ---
-    print("\n" + "=" * 60)
-    print("VALIDATION SET EVALUATION")
-    print("=" * 60)
-    
     y_pred = logreg.predict(X_val_processed)
-    
-    # Compute standard classification metrics
-    print(f"Accuracy:  {accuracy_score(y_val, y_pred):.4f}")
-    print(f"Precision: {precision_score(y_val, y_pred):.4f}")
-    print(f"Recall:    {recall_score(y_val, y_pred):.4f}")
-    print(f"F1 Score:  {f1_score(y_val, y_pred):.4f}")
-    
-    print("\nClassification Report:")
-    print(classification_report(y_val, y_pred, target_names=['<=50K', '>50K']))
     
     # --- STEP 6: SAVE MODEL ---
     save_model(model)
-    print("\n✓ Model trained and saved successfully!")
+    print("\nModel trained and saved")
 
 if __name__ == "__main__":
     train()

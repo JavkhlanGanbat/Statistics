@@ -10,14 +10,14 @@ Mathematical Background:
 Logistic regression models the probability of a binary outcome (0 or 1) using:
     P(y=1|x) = σ(w^T x + b)
     
-where σ is the sigmoid function and w, b are learned parameters.
+where σ is the sigmoid function and w b are learned parameters.
 """
 
 import numpy as np
 from scipy.sparse import issparse
 
 
-class LogisticRegressionCustom:
+class LogisticRegression:
     """
     Custom Logistic Regression using Batch Gradient Descent.
     
@@ -30,7 +30,7 @@ class LogisticRegressionCustom:
     Parameters:
     -----------
     learning_rate : float
-        Step size for gradient descent. Controls how much we adjust weights
+        Initial step size for gradient descent. Controls how much we adjust weights
         in each iteration. Too large = unstable, too small = slow convergence.
         
     max_iter : int
@@ -41,16 +41,24 @@ class LogisticRegressionCustom:
         Convergence tolerance. If loss changes by less than this between
         iterations, we consider the model converged.
         
-    verbose : bool
-        Whether to print training progress to console.
+    reg_lambda : float
+        L2 regularization strength. Helps prevent overfitting by penalizing
+        large weights. Higher values = stronger regularization.
+        
+    lr_decay : float
+        Learning rate decay factor. Reduces learning rate over time for better
+        convergence. New LR = old LR * (1 / (1 + lr_decay * epoch))
     """
     
-    def __init__(self, learning_rate=0.01, max_iter=1000, tol=1e-4, verbose=True):
+    def __init__(self, learning_rate=0.01, max_iter=1000, tol=1e-4, 
+                 reg_lambda=0.01, lr_decay=0.001):
         self.learning_rate = learning_rate
+        self.initial_lr = learning_rate  # Store initial LR for decay
         self.max_iter = max_iter
         self.tol = tol
-        self.verbose = verbose
-        self.weights = None  # Will be initialized to zeros during fit()
+        self.reg_lambda = reg_lambda  # L2 regularization strength
+        self.lr_decay = lr_decay  # Learning rate decay
+        self.weights = None  # Will be initialized with Xavier initialization
         self.bias = None     # Intercept term
         self.losses = []     # Track loss at each iteration for convergence analysis
     
@@ -83,20 +91,22 @@ class LogisticRegressionCustom:
     
     def compute_loss(self, y_true, y_pred):
         """
-        Binary Cross-Entropy Loss (Log Loss)
+        Binary Cross-Entropy Loss with L2 Regularization
         
         Mathematical formula:
-        L = -1/m * Σ[y*log(ŷ) + (1-y)*log(1-ŷ)]
+        L = -1/m * Σ[y*log(ŷ) + (1-y)*log(1-ŷ)] + λ/(2m) * ||w||²
         
         Why this loss?
         - Penalizes confident wrong predictions heavily
         - Smooth gradient for optimization
         - Convex (has single global minimum)
         - Derived from maximum likelihood estimation
+        - L2 regularization prevents overfitting by penalizing large weights
         
         Interpretation:
         - When y=1: loss = -log(ŷ), small when ŷ→1, large when ŷ→0
         - When y=0: loss = -log(1-ŷ), small when ŷ→0, large when ŷ→1
+        - Regularization term: penalizes large weight magnitudes
         
         Parameters:
         -----------
@@ -107,7 +117,7 @@ class LogisticRegressionCustom:
             
         Returns:
         --------
-        Average loss across all samples
+        Average loss across all samples (including regularization)
         """
         m = len(y_true)
         
@@ -116,22 +126,29 @@ class LogisticRegressionCustom:
         y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
         
         # Compute cross-entropy: negative log-likelihood
-        loss = -1/m * np.sum(
+        cross_entropy = -1/m * np.sum(
             y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred)
         )
-        return loss
+        
+        # Add L2 regularization term: λ/(2m) * ||w||²
+        # This penalizes large weights to prevent overfitting
+        l2_penalty = (self.reg_lambda / (2 * m)) * np.sum(self.weights ** 2)
+        
+        return cross_entropy + l2_penalty
     
     def compute_gradients(self, X, y_true, y_pred):
         """
-        Compute Gradients for Gradient Descent
+        Compute Gradients for Gradient Descent with L2 Regularization
         
         Derivation (using chain rule):
-        ∂L/∂w = ∂L/∂ŷ * ∂ŷ/∂z * ∂z/∂w = (ŷ - y) * x
-        ∂L/∂b = ∂L/∂ŷ * ∂ŷ/∂z * ∂z/∂b = (ŷ - y)
+        ∂L/∂w = 1/m * X^T(ŷ - y) + λ/m * w  (with L2 regularization)
+        ∂L/∂b = 1/m * Σ(ŷ - y)
         
-        Key insight: The gradient is simply the error (ŷ - y) weighted by the features.
+        Key insight: The gradient is the error (ŷ - y) weighted by the features,
+        plus a regularization term that pushes weights toward zero.
         - Large errors → large gradient → bigger weight update
         - Features with high values contribute more to the gradient
+        - Regularization prevents any single weight from becoming too large
         
         Parameters:
         -----------
@@ -145,7 +162,7 @@ class LogisticRegressionCustom:
         Returns:
         --------
         dw : array, shape (n,)
-            Gradient with respect to weights
+            Gradient with respect to weights (including regularization)
         db : float
             Gradient with respect to bias
         """
@@ -163,7 +180,11 @@ class LogisticRegressionCustom:
             # Standard matrix multiplication
             dw = (1/m) * np.dot(X.T, error)
         
-        # Bias gradient: average error across all samples
+        # Add L2 regularization gradient: λ/m * w
+        # This pushes weights toward zero to prevent overfitting
+        dw += (self.reg_lambda / m) * self.weights.flatten()
+        
+        # Bias gradient: average error across all samples (no regularization on bias)
         db = (1/m) * np.sum(error)
         
         return dw, db
@@ -174,20 +195,22 @@ class LogisticRegressionCustom:
         
         Algorithm Overview:
         -------------------
-        1. Initialize weights to zero (unbiased starting point)
+        1. Initialize weights with Xavier initialization (better than zeros)
         2. Repeat until convergence or max iterations:
            a. Forward pass: compute predictions
-           b. Compute loss: measure how wrong we are
-           c. Backward pass: compute gradients
+           b. Compute loss: measure how wrong we are (with regularization)
+           c. Backward pass: compute gradients (with regularization)
            d. Update parameters: w = w - α * ∇w
+           e. Decay learning rate for better convergence
         3. Stop when loss stops improving (converged)
         
         Gradient Descent Update Rule:
-        w_new = w_old - learning_rate * gradient
+        w_new = w_old - learning_rate * (gradient + regularization_term)
         
-        The learning rate controls how big our steps are:
-        - Too large: might overshoot minimum, oscillate
-        - Too small: slow convergence, many iterations needed
+        Improvements over basic implementation:
+        - Xavier initialization: better starting point than zeros
+        - L2 regularization: prevents overfitting
+        - Learning rate decay: improves convergence
         
         Parameters:
         -----------
@@ -211,15 +234,20 @@ class LogisticRegressionCustom:
         
         y = np.array(y).reshape(-1, 1)
         
-        # Initialize parameters to zero (common practice)
-        # Starting with zeros means no initial bias toward any class
-        self.weights = np.zeros((n, 1))
+        # Xavier initialization: scale weights by sqrt(1/n) for better convergence
+        # This prevents vanishing/exploding gradients at the start
+        self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
         self.bias = 0
         
         prev_loss = float('inf')
         
         # Training loop: iterate until convergence or max iterations
         for iteration in range(self.max_iter):
+            # --- LEARNING RATE DECAY ---
+            # Reduce learning rate over time for better convergence
+            # Formula: lr = initial_lr / (1 + decay * epoch)
+            self.learning_rate = self.initial_lr / (1 + self.lr_decay * iteration)
+            
             # --- FORWARD PASS ---
             # Compute linear combination: z = Xw + b
             if issparse(X_array):
@@ -231,11 +259,11 @@ class LogisticRegressionCustom:
             # Apply sigmoid to get probabilities: ŷ = σ(z)
             y_pred = self.sigmoid(z)
             
-            # --- COMPUTE LOSS ---
+            # --- COMPUTE LOSS (with regularization) ---
             loss = self.compute_loss(y, y_pred)
             self.losses.append(loss)
             
-            # --- BACKWARD PASS ---
+            # --- BACKWARD PASS (with regularization) ---
             # Compute how much to adjust each parameter
             dw, db = self.compute_gradients(X_array, y, y_pred)
             
@@ -247,15 +275,9 @@ class LogisticRegressionCustom:
             # --- CHECK CONVERGENCE ---
             # If loss isn't improving much, we've converged
             if abs(prev_loss - loss) < self.tol:
-                if self.verbose:
-                    print(f"✓ Converged at iteration {iteration}")
                 break
             
             prev_loss = loss
-            
-            # Print progress periodically
-            if self.verbose and (iteration % 100 == 0 or iteration == self.max_iter - 1):
-                print(f"Iteration {iteration:4d}: Loss = {loss:.4f}")
         
         return self
     
