@@ -13,11 +13,6 @@ ENV/
 results/
 *.log
 
-data/*.csv
-data/*.xlsx
-
-Thumbs.db
-
 *.swp
 *.swo
 *.vscode/
