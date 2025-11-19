@@ -11,7 +11,6 @@ to enable proper model evaluation. We do this once upfront to ensure:
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import os
 
 def split_and_save():
     """
