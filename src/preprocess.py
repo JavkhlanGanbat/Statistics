@@ -17,6 +17,10 @@ from sklearn.pipeline import Pipeline
 # to binary vectors so that only the true value has the value 1, and all others have 0.
 # Example: If a person has a Doctorate, then [education_HS-grad=0, education_Bachelors=0, education_Masters=0, education_Doctorate=1] 
 
+# Final result for one row:
+# [ 2.231, 2.400, 13.366, -0.218, 1.667,   # scaled numerics (5 values)
+#  1,0,0,  0,0,0,1,  0,1,0,  1,0,0,  0,1,0,  1,0,0,  1,0,  1,0,0  one-hot (24 values) ]
+
 def build_preprocessor():
 
     numeric_features = [
