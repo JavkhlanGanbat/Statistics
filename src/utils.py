@@ -10,8 +10,10 @@ def load_data(split="train"):
     return pd.read_csv(path)
 
 def save_model(model, filename="logreg_model.pkl"):
+    """Save trained model to disk."""
     os.makedirs(MODEL_DIR, exist_ok=True)
     joblib.dump(model, os.path.join(MODEL_DIR, filename))
 
 def load_model(filename="logreg_model.pkl"):
+    """Load trained model from disk."""
     return joblib.load(os.path.join(MODEL_DIR, filename))
