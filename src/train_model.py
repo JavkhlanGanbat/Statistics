@@ -1,6 +1,4 @@
 """
-Model Training Script
-
 This script orchestrates the complete training pipeline:
 1. Load pre-split data
 2. Preprocess features (scaling + encoding)
@@ -14,7 +12,6 @@ every training run uses exactly the same train/validation split.
 
 import pandas as pd
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 
 from utils import save_model
 from preprocess import build_preprocessor
@@ -92,7 +89,6 @@ def train():
     
     # --- STEP 7: SAVE MODEL ---
     save_model(model)
-    print("\n✓ Improved model trained and saved")
 
 if __name__ == "__main__":
     train()

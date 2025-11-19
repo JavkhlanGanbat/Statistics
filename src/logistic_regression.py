@@ -1,5 +1,5 @@
 """
-Logistic Regression Implementation from Scratch
+Logistic regression
 
 Logistic regression models the probability of a binary outcome (0 or 1) using:
     P(y=1|x) = σ(w^T x + b)
@@ -13,7 +13,7 @@ from scipy.sparse import issparse
 
 class LogisticRegression:
     """
-    Logistic Regression using Batch Gradient Descent.
+    Logistic begression using batch gradient descent.
     
     This implementation shows the complete learning algorithm:
     1. Forward pass: compute predictions using current weights
@@ -62,7 +62,7 @@ class LogisticRegression:
     
     def sigmoid(self, z):
         """
-        Sigmoid (Logistic) Function: σ(z) = 1 / (1 + e^(-z))
+        Sigmoid (Logistic) function: σ(z) = 1 / (1 + e^(-z))
         
         Maps any real number to (0, 1), making it perfect for probabilities.
         
@@ -112,7 +112,7 @@ class LogisticRegression:
     
     def compute_loss(self, y_true, y_pred, sample_weights=None):
         """
-        Binary Cross-Entropy Loss with L2 Regularization and Class Weights
+        Binary cross-entropy loss with L2 regularization and class weights
         
         Mathematical formula:
         L = -1/m * Σ[y*log(ŷ) + (1-y)*log(1-ŷ)] + λ/(2m) * ||w||²
@@ -163,7 +163,7 @@ class LogisticRegression:
     
     def compute_gradients(self, X, y_true, y_pred, sample_weights=None):
         """
-        Compute Gradients with Class Weighting
+        Compute gradients with class weighting
         
         Derivation (using chain rule):
         ∂L/∂w = 1/m * X^T(ŷ - y) + λ/m * w  (with L2 regularization)
@@ -344,7 +344,7 @@ class LogisticRegression:
     
     def predict_proba(self, X):
         """
-        Predict Class Probabilities
+        Predict class probabilities
         
         Returns probability estimates for both classes:
         - P(y=0|x) = 1 - σ(w^T x + b)
@@ -378,7 +378,7 @@ class LogisticRegression:
     
     def predict(self, X):
         """
-        Predict Binary Class Labels
+        Predict binary class labels
         
         Decision rule: 
         - If P(y=1|x) >= 0.5, predict 1

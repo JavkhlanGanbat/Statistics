@@ -1,14 +1,3 @@
-"""
-Data Splitting Script
-
-This script splits the training data into separate train and validation sets
-to enable proper model evaluation. We do this once upfront to ensure:
-
-1. Reproducibility: Same split every time we run experiments
-2. No data leakage: Validation set never seen during training
-3. Fair evaluation: Stratified split maintains class balance
-"""
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -29,7 +18,7 @@ def split_and_save():
     - Prevents accidentally creating imbalanced splits
     - Ensures validation set is representative of full dataset
     
-    Output Files:
+    Output files:
     -------------
     - train_split.csv: For training the model
     - val_split.csv: For evaluating the model
