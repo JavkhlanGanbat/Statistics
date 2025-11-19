@@ -1,12 +1,6 @@
 """
-Custom Logistic Regression Implementation from Scratch
+Logistic Regression Implementation from Scratch
 
-This module implements binary logistic regression using gradient descent,
-showing all the key mathematical operations explicitly rather than hiding
-them behind library calls.
-
-Mathematical Background:
------------------------
 Logistic regression models the probability of a binary outcome (0 or 1) using:
     P(y=1|x) = σ(w^T x + b)
     
@@ -19,7 +13,7 @@ from scipy.sparse import issparse
 
 class LogisticRegression:
     """
-    Custom Logistic Regression using Batch Gradient Descent.
+    Logistic Regression using Batch Gradient Descent.
     
     This implementation shows the complete learning algorithm:
     1. Forward pass: compute predictions using current weights
@@ -227,8 +221,6 @@ class LogisticRegression:
         """
         Train with optional validation set for early stopping
         
-        Algorithm Overview:
-        -------------------
         1. Initialize weights with Xavier initialization (better than zeros)
         2. Repeat until convergence or max iterations:
            a. Forward pass: compute predictions
