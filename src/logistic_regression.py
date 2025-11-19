@@ -51,16 +51,20 @@ class LogisticRegression:
     """
     
     def __init__(self, learning_rate=0.01, max_iter=1000, tol=1e-4, 
-                 reg_lambda=0.01, lr_decay=0.001):
+                 reg_lambda=0.01, lr_decay=0.001, class_weight='balanced',
+                 threshold=0.5):
         self.learning_rate = learning_rate
         self.initial_lr = learning_rate  # Store initial LR for decay
         self.max_iter = max_iter
         self.tol = tol
         self.reg_lambda = reg_lambda  # L2 regularization strength
         self.lr_decay = lr_decay  # Learning rate decay
+        self.class_weight = class_weight  # 'balanced' or None
+        self.threshold = threshold  # Decision threshold
         self.weights = None  # Will be initialized with Xavier initialization
         self.bias = None     # Intercept term
         self.losses = []     # Track loss at each iteration for convergence analysis
+        self.class_weights_ = None  # Computed class weights
     
     def sigmoid(self, z):
         """
@@ -89,9 +93,32 @@ class LogisticRegression:
         z = np.clip(z, -500, 500)
         return 1 / (1 + np.exp(-z))
     
-    def compute_loss(self, y_true, y_pred):
+    def compute_class_weights(self, y):
         """
-        Binary Cross-Entropy Loss with L2 Regularization
+        Compute class weights to handle imbalanced datasets.
+        
+        Formula: w_i = n_samples / (n_classes * n_samples_i)
+        
+        This gives higher weight to minority class samples,
+        forcing the model to pay more attention to them.
+        """
+        if self.class_weight == 'balanced':
+            classes = np.unique(y)
+            n_samples = len(y)
+            n_classes = len(classes)
+            
+            weights = {}
+            for cls in classes:
+                n_samples_cls = np.sum(y == cls)
+                weights[cls] = n_samples / (n_classes * n_samples_cls)
+            
+            return weights
+        else:
+            return {0: 1.0, 1: 1.0}
+    
+    def compute_loss(self, y_true, y_pred, sample_weights=None):
+        """
+        Binary Cross-Entropy Loss with L2 Regularization and Class Weights
         
         Mathematical formula:
         L = -1/m * Σ[y*log(ŷ) + (1-y)*log(1-ŷ)] + λ/(2m) * ||w||²
@@ -125,10 +152,14 @@ class LogisticRegression:
         epsilon = 1e-15
         y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
         
-        # Compute cross-entropy: negative log-likelihood
-        cross_entropy = -1/m * np.sum(
-            y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred)
-        )
+        # Compute per-sample loss
+        sample_losses = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
+        
+        # Apply sample weights if provided
+        if sample_weights is not None:
+            sample_losses = sample_losses * sample_weights
+        
+        cross_entropy = np.mean(sample_losses)
         
         # Add L2 regularization term: λ/(2m) * ||w||²
         # This penalizes large weights to prevent overfitting
@@ -136,9 +167,9 @@ class LogisticRegression:
         
         return cross_entropy + l2_penalty
     
-    def compute_gradients(self, X, y_true, y_pred):
+    def compute_gradients(self, X, y_true, y_pred, sample_weights=None):
         """
-        Compute Gradients for Gradient Descent with L2 Regularization
+        Compute Gradients with Class Weighting
         
         Derivation (using chain rule):
         ∂L/∂w = 1/m * X^T(ŷ - y) + λ/m * w  (with L2 regularization)
@@ -168,8 +199,11 @@ class LogisticRegression:
         """
         m = len(y_true)
         
-        # Error: how far off our predictions are
         error = y_pred - y_true
+        
+        # Apply sample weights to errors
+        if sample_weights is not None:
+            error = error * sample_weights
         
         # Handle sparse matrices from one-hot encoding efficiently
         if issparse(X):
@@ -189,9 +223,9 @@ class LogisticRegression:
         
         return dw, db
     
-    def fit(self, X, y):
+    def fit(self, X, y, X_val=None, y_val=None):
         """
-        Train the Logistic Regression Model using Gradient Descent
+        Train with optional validation set for early stopping
         
         Algorithm Overview:
         -------------------
@@ -218,6 +252,10 @@ class LogisticRegression:
             Training data (m samples, n features)
         y : array-like, shape (m,)
             Target labels (0 or 1)
+        X_val : array-like or sparse matrix, shape (m_val, n)
+            Validation data (optional, for early stopping)
+        y_val : array-like, shape (m_val,)
+            Validation labels (optional, for early stopping)
             
         Returns:
         --------
@@ -234,12 +272,19 @@ class LogisticRegression:
         
         y = np.array(y).reshape(-1, 1)
         
+        # Compute class weights
+        self.class_weights_ = self.compute_class_weights(y.flatten())
+        sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()]).reshape(-1, 1)
+        
         # Xavier initialization: scale weights by sqrt(1/n) for better convergence
         # This prevents vanishing/exploding gradients at the start
         self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
         self.bias = 0
         
         prev_loss = float('inf')
+        best_val_loss = float('inf')
+        patience_counter = 0
+        patience = 10  # Early stopping patience
         
         # Training loop: iterate until convergence or max iterations
         for iteration in range(self.max_iter):
@@ -260,17 +305,29 @@ class LogisticRegression:
             y_pred = self.sigmoid(z)
             
             # --- COMPUTE LOSS (with regularization) ---
-            loss = self.compute_loss(y, y_pred)
+            loss = self.compute_loss(y, y_pred, sample_weights)
             self.losses.append(loss)
             
             # --- BACKWARD PASS (with regularization) ---
             # Compute how much to adjust each parameter
-            dw, db = self.compute_gradients(X_array, y, y_pred)
+            dw, db = self.compute_gradients(X_array, y, y_pred, sample_weights)
             
             # --- PARAMETER UPDATE ---
             # Move in the opposite direction of the gradient (descent)
             self.weights -= self.learning_rate * dw.reshape(-1, 1)
             self.bias -= self.learning_rate * db
+            
+            # Early stopping with validation set
+            if X_val is not None and y_val is not None:
+                val_loss = self._compute_val_loss(X_val, y_val)
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        print(f"Early stopping at iteration {iteration}")
+                        break
             
             # --- CHECK CONVERGENCE ---
             # If loss isn't improving much, we've converged
@@ -280,6 +337,18 @@ class LogisticRegression:
             prev_loss = loss
         
         return self
+    
+    def _compute_val_loss(self, X_val, y_val):
+        """Helper to compute validation loss"""
+        if issparse(X_val):
+            z = X_val.dot(self.weights) + self.bias
+            z = np.asarray(z).flatten().reshape(-1, 1)
+        else:
+            z = np.dot(X_val, self.weights) + self.bias
+        
+        y_pred = self.sigmoid(z)
+        y_val = np.array(y_val).reshape(-1, 1)
+        return self.compute_loss(y_val, y_pred)
     
     def predict_proba(self, X):
         """
@@ -338,4 +407,49 @@ class LogisticRegression:
         """
         probas = self.predict_proba(X)
         # Apply 0.5 decision threshold
-        return (probas[:, 1] >= 0.5).astype(int)
+        return (probas[:, 1] >= self.threshold).astype(int)
+    
+    def optimize_threshold(self, X, y_true, metric='f1'):
+        """
+        Find optimal decision threshold to maximize a metric.
+        
+        Parameters:
+        -----------
+        X : array-like
+            Validation features
+        y_true : array-like
+            True labels
+        metric : str
+            'f1', 'precision', or 'recall'
+            
+        Returns:
+        --------
+        best_threshold : float
+            Optimal threshold value
+        """
+        from sklearn.metrics import f1_score, precision_score, recall_score
+        
+        probas = self.predict_proba(X)[:, 1]
+        thresholds = np.linspace(0.1, 0.9, 81)
+        
+        best_score = 0
+        best_threshold = 0.5
+        
+        for threshold in thresholds:
+            y_pred = (probas >= threshold).astype(int)
+            
+            if metric == 'f1':
+                score = f1_score(y_true, y_pred)
+            elif metric == 'precision':
+                score = precision_score(y_true, y_pred)
+            elif metric == 'recall':
+                score = recall_score(y_true, y_pred)
+            else:
+                score = f1_score(y_true, y_pred)
+            
+            if score > best_score:
+                best_score = score
+                best_threshold = threshold
+        
+        self.threshold = best_threshold
+        return best_threshold

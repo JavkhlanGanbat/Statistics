@@ -58,33 +58,41 @@ def train():
     X_val_processed = preprocessor.transform(X_val)
     
     # --- STEP 3: TRAIN CUSTOM MODEL ---
-    print("\nTraining model...")
+    print("\nTraining model with improved hyperparameters...")
     
-    # Initialize our custom implementation with optimized hyperparameters
+    # Improved hyperparameters for better metrics
     logreg = LogisticRegression(
-        learning_rate=0.5,     # Higher initial learning rate (will decay)
-        max_iter=1000,         # Maximum training iterations
-        tol=1e-4,              # Convergence threshold
-        reg_lambda=0.01,       # L2 regularization strength
-        lr_decay=0.001,        # Learning rate decay factor
+        learning_rate=0.3,        # Adjusted for faster convergence
+        max_iter=2000,            # More iterations
+        tol=1e-5,                 # Stricter convergence
+        reg_lambda=0.005,         # Lighter regularization
+        lr_decay=0.0005,          # Slower decay
+        class_weight='balanced',  # Handle imbalanced data
+        threshold=0.5             # Will optimize this
     )
     
-    # Train using gradient descent
-    logreg.fit(X_train_processed, y_train.values)
+    # Train with validation set for early stopping
+    logreg.fit(X_train_processed, y_train.values, 
+               X_val=X_val_processed, y_val=y_val.values)
     
-    # --- STEP 4: CREATE SKLEARN-COMPATIBLE PIPELINE ---
+    # --- STEP 4: OPTIMIZE DECISION THRESHOLD ---
+    print("\nOptimizing decision threshold for best F1 score...")
+    optimal_threshold = logreg.optimize_threshold(X_val_processed, y_val.values, metric='f1')
+    print(f"Optimal threshold: {optimal_threshold:.3f}")
+    
+    # --- STEP 5: CREATE SKLEARN-COMPATIBLE PIPELINE ---
     # Wrap preprocessor + model for easy deployment
     model = Pipeline(steps=[
         ("preprocess", preprocessor),
         ("logreg", logreg)
     ])
     
-    # --- STEP 5: EVALUATE ON VALIDATION SET ---
+    # --- STEP 6: EVALUATE ON VALIDATION SET ---
     y_pred = logreg.predict(X_val_processed)
     
-    # --- STEP 6: SAVE MODEL ---
+    # --- STEP 7: SAVE MODEL ---
     save_model(model)
-    print("\nModel trained and saved")
+    print("\n✓ Improved model trained and saved")
 
 if __name__ == "__main__":
     train()
