@@ -59,7 +59,7 @@ def train():
     
     # Improved hyperparameters for better metrics
     logreg = LogisticRegression(
-        learning_rate=0.3,        # Adjusted for faster convergence
+        learning_rate=0.1,        # Adjusted for faster convergence
         max_iter=2000,            # More iterations
         tol=1e-5,                 # Stricter convergence
         reg_lambda=0.005,         # Lighter regularization
@@ -73,12 +73,10 @@ def train():
                X_val=X_val_processed, y_val=y_val.values)
     
     # --- STEP 4: OPTIMIZE DECISION THRESHOLD ---
-    print("\nOptimizing decision threshold for best F1 score...")
     optimal_threshold = logreg.optimize_threshold(X_val_processed, y_val.values, metric='f1')
     print(f"Optimal threshold: {optimal_threshold:.3f}")
     
     # --- STEP 5: CREATE SKLEARN-COMPATIBLE PIPELINE ---
-    # Wrap preprocessor + model for easy deployment
     model = Pipeline(steps=[
         ("preprocess", preprocessor),
         ("logreg", logreg)

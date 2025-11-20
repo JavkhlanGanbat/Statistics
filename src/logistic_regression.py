@@ -9,6 +9,7 @@ where σ is the sigmoid function and w b are learned parameters.
 
 import numpy as np
 from scipy.sparse import issparse
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 
 class LogisticRegression:
@@ -62,7 +63,7 @@ class LogisticRegression:
     
     def sigmoid(self, z):
         """
-        Sigmoid (Logistic) function: σ(z) = 1 / (1 + e^(-z))
+        Sigmoid function: σ(z) = 1 / (1 + e^(-z))
         
         Maps any real number to (0, 1), making it perfect for probabilities.
         
@@ -70,7 +71,6 @@ class LogisticRegression:
         - σ(0) = 0.5 (decision boundary)
         - σ(+∞) → 1
         - σ(-∞) → 0
-        - Smooth and differentiable everywhere
         
         Parameters:
         -----------
@@ -80,8 +80,6 @@ class LogisticRegression:
         Returns:
         --------
         Probability estimates between 0 and 1
-        
-        Note: We clip z to prevent numerical overflow with large values.
         """
         # Prevent overflow: e^(-500) ≈ 0, e^(500) overflows
         z = np.clip(z, -500, 500)
@@ -90,8 +88,6 @@ class LogisticRegression:
     def compute_class_weights(self, y):
         """
         Compute class weights to handle imbalanced datasets.
-        
-        Formula: w_i = n_samples / (n_classes * n_samples_i)
         
         This gives higher weight to minority class samples,
         forcing the model to pay more attention to them.
@@ -114,7 +110,6 @@ class LogisticRegression:
         """
         Binary cross-entropy loss with L2 regularization and class weights
         
-        Mathematical formula:
         L = -1/m * Σ[y*log(ŷ) + (1-y)*log(1-ŷ)] + λ/(2m) * ||w||²
         
         Why this loss?
@@ -124,11 +119,10 @@ class LogisticRegression:
         - Derived from maximum likelihood estimation
         - L2 regularization prevents overfitting by penalizing large weights
         
-        Interpretation:
-        - When y=1: loss = -log(ŷ), small when ŷ→1, large when ŷ→0
-        - When y=0: loss = -log(1-ŷ), small when ŷ→0, large when ŷ→1
-        - Regularization term: penalizes large weight magnitudes
-        
+        When y=1: loss = -log(ŷ), small when ŷ→1, large when ŷ→0
+        When y=0: loss = -log(1-ŷ), small when ŷ→0, large when ŷ→1
+        Regularization term: penalizes large weight magnitudes
+      
         Parameters:
         -----------
         y_true : array
@@ -138,7 +132,7 @@ class LogisticRegression:
             
         Returns:
         --------
-        Average loss across all samples (including regularization)
+        Average loss across all samples
         """
         m = len(y_true)
         
@@ -165,29 +159,28 @@ class LogisticRegression:
         """
         Compute gradients with class weighting
         
-        Derivation (using chain rule):
+        Derivation:
         ∂L/∂w = 1/m * X^T(ŷ - y) + λ/m * w  (with L2 regularization)
         ∂L/∂b = 1/m * Σ(ŷ - y)
         
-        Key insight: The gradient is the error (ŷ - y) weighted by the features,
+        The gradient is the error (ŷ - y) weighted by the features,
         plus a regularization term that pushes weights toward zero.
-        - Large errors → large gradient → bigger weight update
-        - Features with high values contribute more to the gradient
-        - Regularization prevents any single weight from becoming too large
+        Large errors → large gradient → bigger weight update. Features with high values contribute more to the gradient. 
+        Regularization prevents any single weight from becoming too large
         
         Parameters:
         -----------
-        X : array-like, shape (m, n)
+        X : array-like
             Feature matrix (m samples, n features)
-        y_true : array, shape (m,)
+        y_true : array
             True labels
-        y_pred : array, shape (m,)
+        y_pred : array
             Predicted probabilities
             
         Returns:
         --------
-        dw : array, shape (n,)
-            Gradient with respect to weights (including regularization)
+        dw : array
+            Gradient with respect to weights 
         db : float
             Gradient with respect to bias
         """
@@ -230,13 +223,8 @@ class LogisticRegression:
            e. Decay learning rate for better convergence
         3. Stop when loss stops improving (converged)
         
-        Gradient Descent Update Rule:
+        Gradient descent update rule:
         w_new = w_old - learning_rate * (gradient + regularization_term)
-        
-        Improvements over basic implementation:
-        - Xavier initialization: better starting point than zeros
-        - L2 regularization: prevents overfitting
-        - Learning rate decay: improves convergence
         
         Parameters:
         -----------
@@ -276,7 +264,7 @@ class LogisticRegression:
         prev_loss = float('inf')
         best_val_loss = float('inf')
         patience_counter = 0
-        patience = 10  # Early stopping patience
+        patience = 10
         
         # Training loop: iterate until convergence or max iterations
         for iteration in range(self.max_iter):
@@ -380,12 +368,8 @@ class LogisticRegression:
         """
         Predict binary class labels
         
-        Decision rule: 
         - If P(y=1|x) >= 0.5, predict 1
         - Otherwise, predict 0
-        
-        The 0.5 threshold means we predict the more likely class.
-        This can be adjusted for imbalanced datasets.
         
         Parameters:
         -----------
@@ -419,7 +403,6 @@ class LogisticRegression:
         best_threshold : float
             Optimal threshold value
         """
-        from sklearn.metrics import f1_score, precision_score, recall_score
         
         probas = self.predict_proba(X)[:, 1]
         thresholds = np.linspace(0.1, 0.9, 81)
