@@ -41,3 +41,5 @@ pytest_cache/
 
 statproj/share/jupyter/nbconvert/templates/
 statproj/share/jupyter/nbextensions/
+
+quarto-1.8.26-linux-amd64.tar.gz

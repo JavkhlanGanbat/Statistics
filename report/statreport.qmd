@@ -1,0 +1,10 @@
+---
+format:
+  pdf:
+    pdf-engine: pdflatex
+include-in-header: title.tex
+---
+
+This is \myterm{} used in a sentence.
+
+\mybox{Hello!}
