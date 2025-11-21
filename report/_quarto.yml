@@ -1,6 +1,17 @@
 project:
   title: "statreport"
+  output-dir: _output
+
 format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: paged
   pdf:
-    template-partials:
-      - title.tex
+    toc: true
+    number-sections: true
+    pdf-engine: pdflatex
+
+metadata:
+  bibliography: references.bib
+  link-citations: true

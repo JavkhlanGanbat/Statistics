@@ -1,2 +1,13 @@
-/.quarto/
+_output/
+.quarto/
 **/*.quarto_ipynb
+*.aux
+*.log
+*.toc
+*.out
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+
+/.quarto/

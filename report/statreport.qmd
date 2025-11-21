@@ -1,10 +1,109 @@
 ---
+title: "Analysis Report Template"
+author: "Your Name"
+date: today
 format:
+  html:
+    df-print: paged
   pdf:
     pdf-engine: pdflatex
 include-in-header: title.tex
+toc: true
+number-sections: true
+bibliography: references.bib
+link-citations: true
+abstract: |
+  This template demonstrates a complete Quarto report with titles, sections, tables, references, formulas, cross-references, and executable code.
 ---
 
-This is \myterm{} used in a sentence.
+# Introduction
 
-\mybox{Hello!}
+This document is a reusable template for analytical reports in Quarto.
+It supports citations like Roback and Legler @roback2021beyond and Schober et al. @schober2018.
+You can also use custom macros from the header like \myterm{term} and \mybox{Hello from a macro!}.
+
+We will reference Equation @eq-logreg, Figure @fig-sine, and Table @tbl-sample as examples.
+
+# Methods
+
+## Model
+
+We use logistic regression to model binary outcomes:
+
+$$
+P(y=1\mid x)=\sigma(w^\top x + b)=\frac{1}{1+e^{-(w^\top x + b)}}
+$$ {#eq-logreg}
+
+For correlated features, interpret coefficients carefully; see @schober2018 for guidance on correlation.
+
+## Data
+
+Example data dictionary:
+
+| Variable         | Type     | Description                         |
+|:-----------------|:---------|:------------------------------------|
+| age              | numeric  | Age in years                        |
+| educational-num  | numeric  | Years of education                  |
+| hours-per-week   | numeric  | Weekly work hours                   |
+| workclass        | category | Employment type                     |
+| income_>50K      | binary   | 1 if income > 50K, else 0           |
+
+# Results
+
+## Example Figure
+
+```{python}
+#| label: fig-sine
+#| fig-cap: "Sample figure demonstrating a simple sine wave."
+import numpy as np
+import matplotlib.pyplot as plt
+x = np.linspace(0, 2*np.pi, 300)
+plt.plot(x, np.sin(x), color="#2E86AB", lw=2)
+plt.xlabel("x")
+plt.ylabel("sin(x)")
+plt.title("Sine Wave")
+plt.grid(alpha=0.3)
+```
+
+## Example Table
+
+```{python}
+#| label: tbl-sample
+#| tbl-cap: "Sample data table created in Python."
+import pandas as pd
+df = pd.DataFrame({
+  "Metric": ["Accuracy", "Precision", "Recall", "F1"],
+  "Score":  [0.85, 0.79, 0.72, 0.75]
+})
+df
+```
+
+We refer to Figure @fig-sine and Table @tbl-sample for demonstration.
+
+# Discussion
+
+- Quarto enables reproducible, documented analysis with code and narrative.
+- Equations like @eq-logreg are first-class citizens alongside figures and tables.
+- Use citations such as @roback2021beyond to anchor methods in literature.
+
+# Conclusion
+
+This template can be cloned for new reports. Replace text, update references, and embed your analysis code.
+
+# Appendix
+
+## Additional Math
+
+A simple linear model:
+
+$$
+y = X\beta + \varepsilon
+$$ {#eq-ols}
+
+Refer to Equation @eq-ols in text.
+
+## Re-usable Blocks
+
+- Use sections and sub-sections to structure content.
+- Add callouts, code-folding, and filters as needed.
+- Keep references in references.bib and cite with `@key`.
