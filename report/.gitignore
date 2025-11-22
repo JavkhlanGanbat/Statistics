@@ -1,13 +1,24 @@
-_output/
+# Quarto internal cache
 .quarto/
-**/*.quarto_ipynb
+
+# Ignore all build outputs except the final PDF
+_output/*
+!/_output/statreport.pdf
+
+# LaTeX auxiliaries (should reside in temp dirs, but safe to ignore)
 *.aux
 *.log
-*.toc
 *.out
+*.toc
 *.lof
 *.lot
 *.fls
 *.fdb_latexmk
+*.synctex.gz
+
+# Python bytecode
+__pycache__/
+*.pyc
 
 /.quarto/
+**/*.quarto_ipynb

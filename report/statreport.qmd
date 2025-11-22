@@ -1,5 +1,5 @@
 ---
-title: "Analysis Report Template"
+title: "Hello"
 author: "Your Name"
 date: today
 format:
@@ -16,7 +16,7 @@ abstract: |
   This template demonstrates a complete Quarto report with titles, sections, tables, references, formulas, cross-references, and executable code.
 ---
 
-# Introduction
+# Intro
 
 This document is a reusable template for analytical reports in Quarto.
 It supports citations like Roback and Legler @roback2021beyond and Schober et al. @schober2018.

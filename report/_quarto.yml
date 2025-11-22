@@ -3,14 +3,20 @@ project:
   output-dir: _output
 
 format:
-  html:
-    toc: true
-    number-sections: true
-    df-print: paged
   pdf:
+    output-file: statreport          # final tracked artifact _output/statreport.pdf
+    pdf-engine: pdflatex
     toc: true
     number-sections: true
-    pdf-engine: pdflatex
+    keep-tex: false                  # do not retain .tex
+    geometry:
+      - margin=1in
+
+execute:
+  freeze: auto
+  echo: true
+  warning: false
+  message: false
 
 metadata:
   bibliography: references.bib
