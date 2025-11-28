@@ -1,5 +1,5 @@
 ---
-title: "Hello"
+title: ""
 author: "Your Name"
 date: today
 format:
@@ -107,3 +107,5 @@ Refer to Equation @eq-ols in text.
 - Use sections and sub-sections to structure content.
 - Add callouts, code-folding, and filters as needed.
 - Keep references in references.bib and cite with `@key`.
+
+# References
