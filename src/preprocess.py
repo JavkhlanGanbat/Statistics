@@ -2,24 +2,27 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
-# Data cleaning
+# Өгөгдөл цэвэрлэх
+    # CSV файлаас өгөгдлийг уншаад дараа нь fnlwgt хувьсагчийг хасна.
+    # income_>50K нь зорилтот хувьсагч бөгөөд бусад хувьсагчийг тоон болон
+    # чанарын гэж хоёр ангилна.
 
-# We read all the data from the CSV file and drop the fnlwgt variable afterwards.
-# income_>50K is the target, and every other variable is split between numerical and categorical
+# Тоон хувьсагчид: age = 67, capital-gain = 99999 гэх мэт.
+    # StandardScaler ашиглан x = (x - μ) / σ томьёогоор хувиргана. Энд μ нь дундаж,
+    # σ нь стандарт хазайлт.
+    # Ингэснээр аливаа хувьсагчийн абсолют утга нь том байсан ч эцсийн үр дүнд хэт их нөлөөлөхгүй. 
+    # Үгүй бол age = 67-тэй харьцуулахад capital-gain = 99999 нь
+    # абсолют утга ихтэй тул модельд илүү нөлөөтэй байж магадгүй.
 
-# Numerical: age = 67, capital-gain = 99999 etc.
-# Using StandardScaler, we compute x = (x - μ) / σ where μ is the mean and σ is the standard deivation.
-# We do this to avoid bias towards bigger numbers. Without scaling, something like capital gain = 99999 would
-# influence the model more than age = 67, due to its larger absolute value.
+# Чанарын хувьсагчид: education → ['HS-grad', 'Bachelors', 'Masters', 'Doctorate'] гэх мэт.
+    # OneHotEncoder ашиглан боломжит чанарын утгуудыг бүгдийг нь хоёртын вектор болгон хувиргана.
+    # Ингэхдээ тухайн мөрт тохирох утга 1, бусад нь 0 байна.
+    # Жишээлбэл Doctorate зэрэгтэй бол
+    # [education_HS-grad=0, education_Bachelors=0, education_Masters=0, education_Doctorate=1]
 
-# Categorical: education → ['HS-grad', 'Bachelors', 'Masters', 'Doctorate'] etc.  
-# Using OneHotEncoder, for every variable with a finite number of possible categorical values, we convert them
-# to binary vectors so that only the true value has the value 1, and all others have 0.
-# Example: If a person has a Doctorate, then [education_HS-grad=0, education_Bachelors=0, education_Masters=0, education_Doctorate=1] 
-
-# Final result for one row:
-# [ 2.231, 2.400, 13.366, -0.218, 1.667,   # scaled numerics (5 values)
-#  1,0,0,  0,0,0,1,  0,1,0,  1,0,0,  0,1,0,  1,0,0,  1,0,  1,0,0  one-hot (24 values) ]
+# CSV файл дотор байсан мөр дараах хэлбэрт орно
+    # [ 2.231, 2.400, 13.366, -0.218, 1.667,
+    #   1,0,0,  0,0,0,1,  0,1,0,  1,0,0,  0,1,0,  1,0,0,  1,0,  1,0,0 ]
 
 def build_preprocessor():
 
