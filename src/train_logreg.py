@@ -58,8 +58,8 @@ def train():
 
 def main():
     model = load_model(keep_cols=DEFAULT_KEEP_COLS)
-    save_model(model)
-    print("Model trained and saved.")
+    saved_path = save_model(model)  # now writes models/logreg_pipeline.pkl
+    print(f"Model trained and saved to: {saved_path}")
 
 if __name__ == "__main__":
     main()
