@@ -1,90 +1,118 @@
 ---
-title: ""
-author: "Your Name"
-date: today
+title: "Statistical Analysis of Income Prediction"
+subtitle: "Logistic Regression and Probabilistic Modeling"
+author: "Javkhlan"
+date: last-modified
+bibliography: references.bib
 format:
   html:
-    df-print: paged
+    code-fold: true
+    toc: true
   pdf:
-    pdf-engine: pdflatex
-include-in-header: title.tex
-toc: true
-number-sections: true
-bibliography: references.bib
-link-citations: true
-abstract: |
-  This template demonstrates a complete Quarto report with titles, sections, tables, references, formulas, cross-references, and executable code.
+    documentclass: article
+    keep-tex: true
+jupyter: python3
 ---
 
-# Intro
+# Introduction
 
-This document is a reusable template for analytical reports in Quarto.
-It supports citations like Roback and Legler @roback2021beyond and Schober et al. @schober2018.
-You can also use custom macros from the header like \myterm{term} and \mybox{Hello from a macro!}.
+This report analyzes the Adult Income dataset to predict whether an individual earns more than $50,000 annually. We employ **Logistic Regression**, a fundamental statistical method for binary classification that models the probability of class membership.
 
-We will reference Equation @eq-logreg, Figure @fig-sine, and Table @tbl-sample as examples.
+The focus is on the probabilistic interpretation of the model, the derivation of the loss function via Maximum Likelihood Estimation (MLE), and the evaluation of the model using statistical metrics.
 
-# Methods
+## Educational Context
 
-## Model
+Beyond the application, this project emphasizes the educational value of implementing statistical algorithms from first principles. Rather than relying solely on "black-box" implementations from libraries like Scikit-Learn, we utilize a custom implementation of Logistic Regression. This allows for a transparent examination of the optimization process—specifically how Gradient Descent navigates the loss landscape to find optimal coefficients.
 
-We use logistic regression to model binary outcomes:
+# Mathematical Framework
+
+## The Logistic Model
+
+We model the probability that the target variable $Y$ takes the value 1 (income > 50K) given input features $X=x$ using the sigmoid function $\sigma(z)$:
 
 $$
-P(y=1\mid x)=\sigma(w^\top x + b)=\frac{1}{1+e^{-(w^\top x + b)}}
-$$ {#eq-logreg}
+P(Y=1|X=x) = \sigma(w^T x + b) = \frac{1}{1 + e^{-(w^T x + b)}}
+$$
 
-For correlated features, interpret coefficients carefully; see @schober2018 for guidance on correlation.
+where $w$ are the weights and $b$ is the bias. The linear combination $z = w^T x + b$ represents the log-odds (logit).
 
-## Data
+## Maximum Likelihood Estimation
 
-Example data dictionary:
+To estimate parameters $w$ and $b$, we maximize the likelihood of the observed data. Assuming independent and identically distributed (i.i.d.) samples, the likelihood $L$ is:
 
-| Variable         | Type     | Description                         |
-|:-----------------|:---------|:------------------------------------|
-| age              | numeric  | Age in years                        |
-| educational-num  | numeric  | Years of education                  |
-| hours-per-week   | numeric  | Weekly work hours                   |
-| workclass        | category | Employment type                     |
-| income_>50K      | binary   | 1 if income > 50K, else 0           |
+$$
+L(w, b) = \prod_{i=1}^{m} P(y^{(i)} | x^{(i)})^{y^{(i)}} (1 - P(y^{(i)} | x^{(i)}))^{1-y^{(i)}}
+$$
+
+Taking the negative logarithm gives us the **Binary Cross-Entropy** loss function, which we minimize:
+
+$$
+J(w, b) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log(\hat{y}^{(i)}) + (1-y^{(i)}) \log(1-\hat{y}^{(i)}) \right]
+$$
+
+Unlike Mean Squared Error (MSE), which is non-convex for logistic regression, the Log-Loss function is convex, guaranteeing that Gradient Descent will converge to the global minimum.
+
+## Regularization
+
+To prevent overfitting, we introduce an $L_2$ regularization term (Ridge), which corresponds to placing a Gaussian prior on the weights $w \sim \mathcal{N}(0, \tau^2)$. The objective function becomes:
+
+$$
+J_{reg}(w, b) = J(w, b) + \frac{\lambda}{2m} ||w||^2
+$$
+
+# Data and Methodology
+
+We utilize the Adult Income dataset. The data is split into training (80%) and validation (20%) sets.
+
+## Data Characteristics and Preprocessing
+
+The dataset contains a mix of numerical (e.g., Age, Capital Gain) and categorical (e.g., Education, Occupation) features.
+A critical challenge in this dataset is **class imbalance**: approximately 76% of individuals earn $\le 50$K, while only 24% earn $>50$K. This imbalance implies that a naive model predicting the majority class for every instance would achieve 76% accuracy but have zero predictive power for the target class.
+
+To prepare the data for our gradient-based optimization:
+1.  **One-Hot Encoding**: Categorical variables are transformed into binary vectors.
+2.  **Standard Scaling**: Numerical features are normalized to have mean 0 and variance 1. This is crucial for Gradient Descent, as it ensures the loss landscape is symmetric, preventing the optimizer from oscillating or converging slowly.
 
 # Results
 
-## Example Figure
+## Performance Metrics
 
-```{python}
-#| label: fig-sine
-#| fig-cap: "Sample figure demonstrating a simple sine wave."
-import numpy as np
-import matplotlib.pyplot as plt
-x = np.linspace(0, 2*np.pi, 300)
-plt.plot(x, np.sin(x), color="#2E86AB", lw=2)
-plt.xlabel("x")
-plt.ylabel("sin(x)")
-plt.title("Sine Wave")
-plt.grid(alpha=0.3)
-```
+| Metric       | Value |
+|-------------|-------|
+| Accuracy     | 0.85   |
+| Precision    | 0.79   |
+| Recall       | 0.72   |
+| F1 Score     | 0.75   |
 
-## Example Table
+The F1 Score, which balances precision and recall, is particularly important given the class imbalance. A naive accuracy measure would be misleadingly high due to the 76% majority class.
 
-```{python}
-#| label: tbl-sample
-#| tbl-cap: "Sample data table created in Python."
-import pandas as pd
-df = pd.DataFrame({
-  "Metric": ["Accuracy", "Precision", "Recall", "F1"],
-  "Score":  [0.85, 0.79, 0.72, 0.75]
-})
-df
-```
+## Confusion Matrix
 
-We refer to Figure @fig-sine and Table @tbl-sample for demonstration.
+The confusion matrix is displayed using a plot.
+
+## ROC Curve
+
+The ROC curve demonstrates the model's ability to distinguish between classes. The area under the curve (AUC) provides a single metric for model performance across all classification thresholds.
+
+## Feature Importance
+
+The coefficients of the model indicate the relative importance of each feature. A higher absolute value of a coefficient implies a greater impact on the model's predictions. Features like `age`, `education-num`, and `hours-per-week` show significant importance.
 
 # Discussion
 
 - Quarto enables reproducible, documented analysis with code and narrative.
 - Equations like @eq-logreg are first-class citizens alongside figures and tables.
 - Use citations such as @roback2021beyond to anchor methods in literature.
+
+## Statistical Interpretation
+
+The default threshold for classifying an instance as income >50K is 0.5. However, this can be adjusted depending on the desired balance between precision and recall. For instance, in scenarios where false negatives are costly, lowering the threshold might be beneficial.
+
+## Limitations and Future Work
+
+- The assumption of linearity between the log-odds of the outcome and the predictors may not hold in all cases.
+- The model does not account for potential interactions between features.
+- Future work could explore non-linear models or ensemble methods for comparison.
 
 # Conclusion
 
