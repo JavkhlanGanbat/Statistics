@@ -6,14 +6,13 @@
 5. Сургасан загварыг хадгалах
 """
 
-import pandas as pd
 from sklearn.pipeline import Pipeline
 
 from utils import load_model, save_model, DEFAULT_KEEP_COLS
 from preprocess import build_preprocessor
 from logistic_regression import LogisticRegression
 
-def train():
+def main():
     print("Сургалтын өгөгдлийг ачаалж байна...")
     train_df = pd.read_csv("../data/train_split.csv")
     val_df = pd.read_csv("../data/val_split.csv")
@@ -58,7 +57,7 @@ def train():
 
 def main():
     model = load_model(keep_cols=DEFAULT_KEEP_COLS)
-    saved_path = save_model(model)  # now writes models/logreg_pipeline.pkl
+    saved_path = save_model(model)
     print(f"Model trained and saved to: {saved_path}")
 
 if __name__ == "__main__":

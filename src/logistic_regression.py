@@ -188,15 +188,14 @@ class LogisticRegression:
                 else:
                     patience_counter += 1
                     if patience_counter >= patience:
-                        print(f"Early stopping at iteration {iteration}")
+                        # Early stopping (silenced)
                         break
-            
-            # Check convergence
+
+            # Convergence check
             if abs(prev_loss - loss) < self.tol:
                 break
-            
             prev_loss = loss
-        
+
         return self
     
     def _compute_val_loss(self, X_val, y_val):
