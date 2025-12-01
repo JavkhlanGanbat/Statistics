@@ -9,7 +9,7 @@
 import pandas as pd
 from sklearn.pipeline import Pipeline
 
-from utils import save_model
+from utils import load_model, save_model, DEFAULT_KEEP_COLS
 from preprocess import build_preprocessor
 from logistic_regression import LogisticRegression
 
@@ -56,5 +56,10 @@ def train():
     
     save_model(model)
 
+def main():
+    model = load_model(keep_cols=DEFAULT_KEEP_COLS)
+    save_model(model)
+    print("Model trained and saved.")
+
 if __name__ == "__main__":
-    train()
+    main()
