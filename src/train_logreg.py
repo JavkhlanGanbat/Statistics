@@ -6,6 +6,7 @@
 5. Сургасан загварыг хадгалах
 """
 
+import pandas as pd
 from sklearn.pipeline import Pipeline
 
 from utils import load_model, save_model, DEFAULT_KEEP_COLS
