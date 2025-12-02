@@ -1,81 +1,81 @@
 ---
-title: "Statistical Analysis of Income Prediction"
-subtitle: "Logistic Regression and Probabilistic Modeling"
+title: "Орлогын Таамаглалын Статистик Шинжилгээ / Income Prediction"
 author: "Javkhlan"
 date: last-modified
+lang: mn
 bibliography: references.bib
 format:
-  html:
-    code-fold: true
-    toc: true
   pdf:
-    documentclass: article
-    keep-tex: true
-jupyter: python3
+    toc: true
+  html:
+    toc: true
 ---
 
-# Introduction
+# Оршил (Introduction)
 
-This report analyzes the Adult Income dataset to predict whether an individual earns more than $50,000 annually. We employ **Logistic Regression**, a fundamental statistical method for binary classification that models the probability of class membership.
+Энэ төслийн зорилго нь Adult Income өгөгдлийн санг ашиглан хувь хүн жилийн орлого >50K эсэхийг таамаглах юм. Бид өөрсдийн хэрэгжүүлсэн логистик регресс загварыг sklearn Pipeline-той хослуулан ашигласан. Загвар нь L2 регуляризацитай, batch градиент бууруулалтаар суралцаж, сурах хурдны бууралт хэрэглэдэг.
 
-The focus is on the probabilistic interpretation of the model, the derivation of the loss function via Maximum Likelihood Estimation (MLE), and the evaluation of the model using statistical metrics.
-
-## Educational Context
-
-Beyond the application, this project emphasizes the educational value of implementing statistical algorithms from first principles. Rather than relying solely on "black-box" implementations from libraries like Scikit-Learn, we utilize a custom implementation of Logistic Regression. This allows for a transparent examination of the optimization process—specifically how Gradient Descent navigates the loss landscape to find optimal coefficients.
-
-# Mathematical Framework
-
-## The Logistic Model
-
-We model the probability that the target variable $Y$ takes the value 1 (income > 50K) given input features $X=x$ using the sigmoid function $\sigma(z)$:
-
+Логистик магадлалын загвар:
 $$
-P(Y=1|X=x) = \sigma(w^T x + b) = \frac{1}{1 + e^{-(w^T x + b)}}
+P(Y=1\mid X=x) \;=\; \sigma\!\big(w^\top x + b\big) \;=\; \frac{1}{1 + e^{-\big(w^\top x + b\big)}}
+$$ {#eq-logreg}
+
+Сургалтын алдагдал (хоёртын cross-entropy + L2):
+$$
+J(w,b)\;=\; -\frac{1}{m}\sum_{i=1}^{m}\Big[y^{(i)}\log\hat{y}^{(i)} + \big(1-y^{(i)}\big)\log\!\big(1-\hat{y}^{(i)}\big)\Big] \;+\; \frac{\lambda}{2m}\,\lVert w\rVert^2
 $$
 
-where $w$ are the weights and $b$ is the bias. The linear combination $z = w^T x + b$ represents the log-odds (logit).
-
-## Maximum Likelihood Estimation
-
-To estimate parameters $w$ and $b$, we maximize the likelihood of the observed data. Assuming independent and identically distributed (i.i.d.) samples, the likelihood $L$ is:
-
+Сурах хурдны бууралт:
 $$
-L(w, b) = \prod_{i=1}^{m} P(y^{(i)} | x^{(i)})^{y^{(i)}} (1 - P(y^{(i)} | x^{(i)}))^{1-y^{(i)}}
+\alpha_t \;=\; \frac{\alpha_0}{1 + \text{decay}\cdot t}
 $$
 
-Taking the negative logarithm gives us the **Binary Cross-Entropy** loss function, which we minimize:
+Pipeline:
+- Тоон шинжүүд → StandardScaler
+- Категори шинжүүд → OneHotEncoder(handle_unknown="ignore")
+- Классын жин → class_weight="balanced"
+
+# Өгөгдөл (Data)
+
+Эх сурвалж: Adult Income (Census Bureau). Зорилтот хувьсагч: `income_>50K` (0/1). Өгөгдөл нь тоон ба категори шинжүүдийн холимог бөгөөд ангиудын тэнцвэргүй байдал ажиглагдана (>50K нь цөөн).
+
+1) Ашигласан ба унагаасан хувьсагчид (сплит хийх шатанд цөөлсөн)
+- Ашигласан (kept)
+  - Тоон: `age`, `educational-num`, `capital-gain`, `capital-loss`, `hours-per-week`
+  - Категори: `education`, `marital-status`, `occupation`, `gender`
+- Унагаасан (dropped) — давхардал/тайлбарлах ач холбогдол бага, эсвэл дуу чимээ ихтэй баганууд:
+  - Жишээлбэл: `workclass`, `fnlwgt`, `relationship`, `race`, `native-country`, бусад үл ашигласан бүх баганууд
+
+2) Хуваалт
+- 80% сургалт, 20% баталгаажуулалт (stratify=`income_>50K`)
+- Хуваасны дараа зөвхөн дээрх kept баганууд болон зорилтот багана бүхий `train_split.csv`, `val_split.csv` файлд хадгалсан
+
+3) Урьдчилсан боловсруулалт
+- Тоон шинжүүдийг стандартчилж, категори шинжүүдийг one-hot кодчилно
+- Үүссэн онцлог вектор дээр логистик регресс сургав:
+  - learning_rate ≈ 0.1, max_iter ≈ 800, reg_lambda = 1e-4, lr_decay = 1e-4
+  - class_weight = "balanced", threshold = 0.5
+
+4) Ангиудын тэнцвэргүй байдал
+- ≤50K анги нь давамгай (ихэнх), >50K анги нь цөөн тул F1/Recall зэрэг тэнцвэртэй үзүүлэлтүүдийг давхар харна. Cross-entropy алдагдал болон жинлэлт нь цөөн ангийг үл тоомсорлохоос сэргийлдэг.
+
+# Логистик загвар / Logistic Model
 
 $$
-J(w, b) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log(\hat{y}^{(i)}) + (1-y^{(i)}) \log(1-\hat{y}^{(i)}) \right]
-$$
+P(Y=1\\mid X=x)=\\sigma(w^T x + b)=\\frac{1}{1+e^{-(w^T x + b)}}
+$$ {#eq-logreg}
 
-Unlike Mean Squared Error (MSE), which is non-convex for logistic regression, the Log-Loss function is convex, guaranteeing that Gradient Descent will converge to the global minimum.
+Дээрх @eq-logreg тэгшитгэл нь магадлалыг сигмоид функцээр дүрслэнэ.
 
-## Regularization
+# Кирилл үсгийн тест / Cyrillic Smoke Test
 
-To prevent overfitting, we introduce an $L_2$ regularization term (Ridge), which corresponds to placing a Gaussian prior on the weights $w \sim \mathcal{N}(0, \tau^2)$. The objective function becomes:
+Доорх мөрүүд зөв гарч буй эсэхийг PDF дээр шалгана:
 
-$$
-J_{reg}(w, b) = J(w, b) + \frac{\lambda}{2m} ||w||^2
-$$
+Монгол хэлний кирилл: Үүнд ө, ү, ч, ж, й, һ, ё тэмдэгтүүд орно.  
+Туршилт өгөгдөл: “Сургалтын загвар амжилттай ажиллалаа.”  
+English fallback: Model trained successfully.
 
-# Data and Methodology
-
-We utilize the Adult Income dataset. The data is split into training (80%) and validation (20%) sets.
-
-## Data Characteristics and Preprocessing
-
-The dataset contains a mix of numerical (e.g., Age, Capital Gain) and categorical (e.g., Education, Occupation) features.
-A critical challenge in this dataset is **class imbalance**: approximately 76% of individuals earn $\le 50$K, while only 24% earn $>50$K. This imbalance implies that a naive model predicting the majority class for every instance would achieve 76% accuracy but have zero predictive power for the target class.
-
-To prepare the data for our gradient-based optimization:
-1.  **One-Hot Encoding**: Categorical variables are transformed into binary vectors.
-2.  **Standard Scaling**: Numerical features are normalized to have mean 0 and variance 1. This is crucial for Gradient Descent, as it ensures the loss landscape is symmetric, preventing the optimizer from oscillating or converging slowly.
-
-# Results
-
-## Performance Metrics
+# Үзүүлэлт / Metrics
 
 | Metric       | Value |
 |-------------|-------|
@@ -84,56 +84,8 @@ To prepare the data for our gradient-based optimization:
 | Recall       | 0.72   |
 | F1 Score     | 0.75   |
 
-The F1 Score, which balances precision and recall, is particularly important given the class imbalance. A naive accuracy measure would be misleadingly high due to the 76% majority class.
+# Дүгнэлт / Conclusion
 
-## Confusion Matrix
+Энэхүү тайлан нь Adult Income өгөгдлийн сан дээр логистик регресс ашиглан орлого >50K эсэхийг таамаглахад чиглэсэн. Логистик регресс нь хоёр ангиллын хоорондох магадлалыг загварчлахад ашиглагддаг статистикийн үндсэн арга юм. Манай загвар нь 85% үнэн зөв, 79% нарийвчлал, 72% сануулга, 75% F1 оноо үзүүлсэн. Эдгээр үзүүлэлтүүд нь ангиллын тэнцвэргүй байдлыг харгалзан үзэхэд чухал ач холбогдолтой.
 
-The confusion matrix is displayed using a plot.
-
-## ROC Curve
-
-The ROC curve demonstrates the model's ability to distinguish between classes. The area under the curve (AUC) provides a single metric for model performance across all classification thresholds.
-
-## Feature Importance
-
-The coefficients of the model indicate the relative importance of each feature. A higher absolute value of a coefficient implies a greater impact on the model's predictions. Features like `age`, `education-num`, and `hours-per-week` show significant importance.
-
-# Discussion
-
-- Quarto enables reproducible, documented analysis with code and narrative.
-- Equations like @eq-logreg are first-class citizens alongside figures and tables.
-- Use citations such as @roback2021beyond to anchor methods in literature.
-
-## Statistical Interpretation
-
-The default threshold for classifying an instance as income >50K is 0.5. However, this can be adjusted depending on the desired balance between precision and recall. For instance, in scenarios where false negatives are costly, lowering the threshold might be beneficial.
-
-## Limitations and Future Work
-
-- The assumption of linearity between the log-odds of the outcome and the predictors may not hold in all cases.
-- The model does not account for potential interactions between features.
-- Future work could explore non-linear models or ensemble methods for comparison.
-
-# Conclusion
-
-This template can be cloned for new reports. Replace text, update references, and embed your analysis code.
-
-# Appendix
-
-## Additional Math
-
-A simple linear model:
-
-$$
-y = X\beta + \varepsilon
-$$ {#eq-ols}
-
-Refer to Equation @eq-ols in text.
-
-## Re-usable Blocks
-
-- Use sections and sub-sections to structure content.
-- Add callouts, code-folding, and filters as needed.
-- Keep references in references.bib and cite with `@key`.
-
-# References
+# Ном зүй / References

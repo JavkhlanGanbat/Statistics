@@ -4,13 +4,36 @@ project:
 
 format:
   pdf:
-    output-file: statreport          # final tracked artifact _output/statreport.pdf
-    pdf-engine: pdflatex
+    pdf-engine: lualatex
     toc: true
     number-sections: true
-    keep-tex: false                  # do not retain .tex
     geometry:
       - margin=1in
+    mainfont: "CMU Serif"
+    sansfont: "CMU Sans Serif"
+    monofont: "CMU Typewriter Text"
+    include-in-header:
+      - text: |
+          % Mongolian + CMU font setup with fallback
+          \usepackage{polyglossia}
+          \setmainlanguage{mongolian}
+          \setotherlanguage{english}
+          \IfFontExistsTF{CMU Serif}{%
+            \setmainfont{CMU Serif}
+            \setsansfont{CMU Sans Serif}
+            \setmonofont{CMU Typewriter Text}
+            \newfontfamily\mongolianfont{CMU Serif}
+          }{%
+            \setmainfont{TeX Gyre Termes} % fallback with Cyrillic
+            \setsansfont{TeX Gyre Heros}
+            \setmonofont{TeX Gyre Cursor}
+            \newfontfamily\mongolianfont{TeX Gyre Termes}
+          }
+
+  html:
+    toc: true
+    lang: mn
+    code-fold: true
 
 execute:
   freeze: auto
@@ -18,6 +41,9 @@ execute:
   warning: false
   message: false
 
+crossref: false
+
 metadata:
   bibliography: references.bib
   link-citations: true
+  lang: mn
