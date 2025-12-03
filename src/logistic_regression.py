@@ -163,7 +163,7 @@ class LogisticRegression:
         1. Xavier initialization (жингүүдийг √(1/n)-р үржүүлэн эхлүүлэх)
         2. Forward pass: ŷ = σ(Xw + b)
         3. Алдаагаа тооцох
-        4. Gradient тооцоод w, b шинэчлэх
+        4. Gradient descent => w, b оновчлох
         5. Learning rate decay = lr / (1 + decay * epoch)
         6. Early stopping (Үнэлгээний өгөгдөл дээр алдаа нь өсөхөд)
         
