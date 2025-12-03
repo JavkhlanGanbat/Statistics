@@ -42,7 +42,7 @@ def main():
         tol=1e-4,
         reg_lambda=1e-4,
         lr_decay=1e-4,
-        class_weight="balanced",
+        class_weight='balanced',
         threshold=0.5
     )
     logreg.fit(X_train_proc, y_train.values, X_val=X_val_proc, y_val=y_val.values)
@@ -59,7 +59,7 @@ def main():
         "iterations": len(getattr(logreg, "losses", []))
     }
 
-    print("Validation metrics:")
+    print("Metrics:")
     for k, v in metrics.items():
         print(f"  {k}: {v:.4f}" if isinstance(v, float) else f"  {k}: {v}")
 
@@ -70,7 +70,7 @@ def main():
     out_path = models_root / "logreg_pipeline.pkl"
     with open(out_path, "wb") as f:
         pickle.dump(model, f)
-    print(f"Saved model to: {out_path}")
+    print(f"Model saved")
 
 if __name__ == "__main__":
     main()
