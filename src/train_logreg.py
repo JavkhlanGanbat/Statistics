@@ -46,10 +46,8 @@ def main():
         threshold=0.5
     )
     logreg.fit(X_train_proc, y_train.values, X_val=X_val_proc, y_val=y_val.values)
-    try:
-        logreg.optimize_threshold(X_val_proc, y_val.values, metric="f1")
-    except Exception:
-        pass
+
+    logreg.optimize_threshold(X_val_proc, y_val.values, metric="f1")
 
     y_pred = logreg.predict(X_val_proc)
     metrics = {

@@ -1,8 +1,9 @@
 """
-Logistic regression
+Логистик регресс
 
-Models binary outcome probability: P(y=1|x) = σ(w^T x + b)
-where σ is sigmoid and w, b are learned parameters.
+Хоёртын үр дүн (binary outcome)-г загварчлах: P(y=1|x) = σ(w^T x + b)
+σ: Сигмойд функц
+w, b: Модель өөрөө сурах параметрүүд.
 """
 
 import numpy as np
@@ -12,24 +13,15 @@ from sklearn.metrics import f1_score, precision_score, recall_score
 
 class LogisticRegression:
     """
-    Logistic regression via batch gradient descent.
+    Logistic regression & batch gradient descent.
     
-    Algorithm: forward pass → loss → gradients → parameter update
+    forward pass → loss → gradients → parameter update.
     
-    Parameters:
-    -----------
-    learning_rate : float
-        Gradient descent step size. Too large = unstable, too small = slow.
-    max_iter : int
-        Maximum training iterations.
-    tol : float
-        Convergence tolerance for loss change.
-    reg_lambda : float
-        L2 regularization strength to prevent overfitting.
-    lr_decay : float
-        Learning rate decay: new_lr = old_lr / (1 + lr_decay * epoch)
+    Энэ модел нь оролтын x дээр үндэслэн хоёртын үр дүнгийн магадлал
+    P(y=1 | x)-ийг таамагладаг. Оролт болон параметрийн шугаман нийлбэрийг
+    (w^T x + b) сигмоид функц нь хэрэглээд магадлал руу хувиргана.
     """
-    
+
     def __init__(self, learning_rate=0.01, max_iter=1000, tol=1e-4, 
                  reg_lambda=0.01, lr_decay=0.001, class_weight='balanced',
                  threshold=0.5):
@@ -49,13 +41,29 @@ class LogisticRegression:
     def sigmoid(self, z):
         """
         Sigmoid: σ(z) = 1 / (1 + e^(-z))
-        Maps reals to (0,1). σ(0)=0.5, σ(+∞)→1, σ(-∞)→0
+        
+        Сигмоид функц нь бодит тоог (0,1) интервалд орших магадлал руу хувиргана..
+        
+        σ(z) нь:
+        - z их эерэг тоо бол ≈ 1
+        - z их сөрөг тоо бол ≈ 0
+        - z = 0 үед 0.5
+        
+        z-г clip() хийх нь хөвөгч цэгийн overflow-г багасгана.
         """
-        z = np.clip(z, -500, 500)  # Prevent overflow
+        z = np.clip(z, -500, 500)
         return 1 / (1 + np.exp(-z))
     
     def compute_class_weights(self, y):
-        """Compute weights to handle imbalanced datasets."""
+        """
+        Классуудын жинг тооцоолно (Тэнцвэргүй байдлыг харгалзан үзсэн)
+        
+        'balanced' үед:
+            weight(c) = n_samples / (n_classes * n_samples_in_class_c)
+        
+        Энэ нь тэнцвэргүй өгөгдлийн үед бага тоотой ангиллыг илүү "жинтэй"
+        болгож, үргэлж олонхын прогнозчилох хандлагыг бууруулна.
+        """
         if self.class_weight == 'balanced':
             classes = np.unique(y)
             n_samples = len(y)
@@ -72,11 +80,26 @@ class LogisticRegression:
     
     def compute_loss(self, y_true, y_pred, sample_weights=None):
         """
-        Binary cross-entropy with L2 regularization:
-        L = -1/m * Σ[y*log(ŷ) + (1-y)*log(1-ŷ)] + λ/(2m) * ||w||²
+        L2 тогтворжуулалттай (regularization) хоёртын cross-entropy алдаа
         
-        Penalizes confident wrong predictions. Convex, smooth gradient.
-        Regularization prevents overfitting.
+        Хоёртын cross-entropy:
+
+            L_ce = -(1/m) Σ [ y log(ŷ) + (1-y) log(1-ŷ) ]
+
+        L2 тогтворжуулалт
+
+            L_reg = (λ / (2m)) ||w||²
+
+        Нийт алдаа:
+
+            L = L_ce + L_reg
+
+        Cross-entropy нь буруу таамаглалуудыг итгэлтэйгээр гаргахад илүү шийтгэдэг
+        
+        L2 регуляц нь том жинuүүдийг багасгаж overfitting-ээс сэргийлдэг.
+
+        Энэ алдааны функц L(w,b) нь w, b параметрүүдийн хувьд хотгор, ганцхан глобал минимум утгатай.
+        Gradient descent аргаар энэ минимум утгыг гаргаж авахад харьцангүй амар.
         """
         m = len(y_true)
         
@@ -95,11 +118,24 @@ class LogisticRegression:
     
     def compute_gradients(self, X, y_true, y_pred, sample_weights=None):
         """
-        Gradients with L2 regularization:
+        Алдааны функцын gradient-г тооцоолно.
+        Таамагласан магадлал:
+            ŷ = σ(z) = σ(Xw + b)
+
+            X = онцлогийн (feature) матриц (m түүвэр × n онцлог)
+            w = жингийн вектор (n × 1)
+            b = хазайлтын скаляр
+            ŷ = таамагласан магадлал
+            y = жинхэнэ утга (m × 1)
+
+        Алдааны функц L-г түүний параметр болох w болон b-н хувьд тухайн уламжлалыг авч
+        gradient-уудыг тооцоолно.
+
         ∂L/∂w = 1/m * X^T(ŷ - y) + λ/m * w
         ∂L/∂b = 1/m * Σ(ŷ - y)
         
-        Error weighted by features, plus regularization term.
+        Энэ градиент нь параметрүүдийг бууруулах чиглэлийг зааж өгнө.
+        λ/m * w хэсэг нь жингүүдийг хэт өсөхөөс сэргийлнэ.
         """
         m = len(y_true)
         
@@ -121,18 +157,17 @@ class LogisticRegression:
     
     def fit(self, X, y, X_val=None, y_val=None):
         """
-        Train model with optional early stopping.
+        Train the model using batch gradient descent.
         
-        Steps: initialize weights (Xavier) → iterate until convergence:
-        forward pass → loss → gradients → update → decay lr
+        Сургалтын алхмууд:
+        1. Xavier initialization (жингүүдийг √(1/n)-р үржүүлэн эхлүүлэх)
+        2. Forward pass: ŷ = σ(Xw + b)
+        3. Алдаагаа тооцох
+        4. Gradient тооцоод w, b шинэчлэх
+        5. Learning rate decay = lr / (1 + decay * epoch)
+        6. Early stopping (Үнэлгээний өгөгдөл дээр алдаа нь өсөхөд)
         
-        Parameters:
-        -----------
-        X : array-like or sparse, shape (m, n)
-            Training features
-        y : array-like, shape (m,)
-            Labels (0 or 1)
-        X_val, y_val : optional validation set for early stopping
+        tol параметр нь loss-ийн өөрчлөлт бага болсон үед сургалтыг дуусгана.
         """
         if issparse(X):
             m, n = X.shape
@@ -147,7 +182,6 @@ class LogisticRegression:
         self.class_weights_ = self.compute_class_weights(y.flatten())
         sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()]).reshape(-1, 1)
         
-        # Xavier initialization: scale by sqrt(1/n)
         self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
         self.bias = 0
         
@@ -157,10 +191,8 @@ class LogisticRegression:
         patience = 10
         
         for iteration in range(self.max_iter):
-            # Decay learning rate
             self.learning_rate = self.initial_lr / (1 + self.lr_decay * iteration)
             
-            # Forward pass: z = Xw + b, ŷ = σ(z)
             if issparse(X_array):
                 z = X_array.dot(self.weights) + self.bias
                 z = np.asarray(z).flatten().reshape(-1, 1)
@@ -169,17 +201,14 @@ class LogisticRegression:
             
             y_pred = self.sigmoid(z)
             
-            # Loss and gradients
             loss = self.compute_loss(y, y_pred, sample_weights)
             self.losses.append(loss)
             
             dw, db = self.compute_gradients(X_array, y, y_pred, sample_weights)
             
-            # Update: w = w - α * ∇w
             self.weights -= self.learning_rate * dw.reshape(-1, 1)
             self.bias -= self.learning_rate * db
             
-            # Early stopping
             if X_val is not None and y_val is not None:
                 val_loss = self._compute_val_loss(X_val, y_val)
                 if val_loss < best_val_loss:
@@ -188,18 +217,25 @@ class LogisticRegression:
                 else:
                     patience_counter += 1
                     if patience_counter >= patience:
-                        # Early stopping (silenced)
                         break
 
-            # Convergence check
             if abs(prev_loss - loss) < self.tol:
                 break
             prev_loss = loss
-
+        
         return self
     
     def _compute_val_loss(self, X_val, y_val):
-        """Compute validation loss."""
+        """
+        Үнэлгээний өгөгдөл дээр алдааг тооцоолно.
+        
+        Энийг ашигласнаар
+        - overfitting илрүүлнэ
+        - early stopping хийнэ
+        
+        Уг алгоритм нь сургалтын алдаанаас гадна модель өмнө нь хараагүй өгөгдөл дээр
+        хэрхэн ажиллаж байгааг шалгахад тусална.
+        """
         if issparse(X_val):
             z = X_val.dot(self.weights) + self.bias
             z = np.asarray(z).flatten().reshape(-1, 1)
@@ -212,7 +248,13 @@ class LogisticRegression:
     
     def predict_proba(self, X):
         """
-        Return probability estimates: [P(y=0), P(y=1)] for each sample.
+        Түүвэр буюу мөр болгонд классуудын магадлалыг буцаана: [P(y=0), P(y=1)].
+        
+        - P(y=1) = σ(w^T x + b)
+        - P(y=0) = 1 - P(y=1)
+        
+        Энэ функц нь [0,1] интервалд орших тасралтгүй утгыг буцаана. Энэ утгуудыг 
+        threshold утгатайгаа жишиж 0 эсвэл 1 гэсэн дискрет утгуудыг буцаана.
         """
         if issparse(X):
             z = X.dot(self.weights) + self.bias
@@ -229,25 +271,22 @@ class LogisticRegression:
     
     def predict(self, X):
         """
-        Predict binary labels. Returns 1 if P(y=1|x) >= threshold, else 0.
+        P(y=1|x) >= threshold   =>   1
+        P(y=1|x) < threshold    =>   0
         """
         probas = self.predict_proba(X)
         return (probas[:, 1] >= self.threshold).astype(int)
     
     def optimize_threshold(self, X, y_true, metric='f1'):
         """
-        Find optimal decision threshold to maximize metric.
+        Аль нэг үзүүлэлтийг дээд зэргээр ихэсгэх заагийн утгыг олох.
         
-        Parameters:
-        -----------
-        X : array-like
-            Validation features
-        y_true : array-like
-            True labels
-        metric : str
-            'f1', 'precision', or 'recall'
+        Үнэлгээний түүвэр дээр энэ утгыг [0.1, 0.9] интервалаас хайж,
+        F1, precision, эсвэл recall хамгийн их болдог утгыг сонгоно.
         
-        Returns best_threshold : float
+        Тэнцвэргүй өгөгдлийн үед маш чухал бөгөөд
+        model-ийн бодит хэрэглээний зорилгод
+        хамгийн сайн тохирох шийдвэрийн цэгийг олно.
         """
         probas = self.predict_proba(X)[:, 1]
         thresholds = np.linspace(0.1, 0.9, 81)
