@@ -44,7 +44,12 @@ format:
 \end{titlepage}
 
 \newpage
-
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=blue
+}
 \renewcommand{\contentsname}{Агуулга}
 \tableofcontents
 
