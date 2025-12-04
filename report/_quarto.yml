@@ -4,32 +4,19 @@ project:
 
 format:
   pdf:
-    pdf-engine: lualatex
+    pdf-engine: xelatex
     toc: true
     number-sections: true
     geometry:
       - margin=1in
-    mainfont: "CMU Serif"
-    sansfont: "CMU Sans Serif"
-    monofont: "CMU Typewriter Text"
+    mainfont: "Arial"
+    sansfont: "Arial"
+    monofont: "Arial"
     include-in-header:
       - text: |
-          % Mongolian + CMU font setup with fallback
           \usepackage{polyglossia}
           \setmainlanguage{mongolian}
           \setotherlanguage{english}
-          \IfFontExistsTF{CMU Serif}{%
-            \setmainfont{CMU Serif}
-            \setsansfont{CMU Sans Serif}
-            \setmonofont{CMU Typewriter Text}
-            \newfontfamily\mongolianfont{CMU Serif}
-          }{%
-            \setmainfont{TeX Gyre Termes} % fallback with Cyrillic
-            \setsansfont{TeX Gyre Heros}
-            \setmonofont{TeX Gyre Cursor}
-            \newfontfamily\mongolianfont{TeX Gyre Termes}
-          }
-
   html:
     toc: true
     lang: mn
