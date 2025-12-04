@@ -9,14 +9,17 @@ format:
     number-sections: true
     geometry:
       - margin=1in
-    mainfont: "Arial"
-    sansfont: "Arial"
-    monofont: "Arial"
     include-in-header:
       - text: |
           \usepackage{polyglossia}
           \setmainlanguage{mongolian}
           \setotherlanguage{english}
+          \setmainfont{Arial}
+          \setsansfont{Arial}
+          \setmonofont{Arial}
+          \newfontfamily\cyrillicfont{Arial}
+          \newfontfamily\cyrillicfontsf{Arial}
+          \newfontfamily\cyrillicfonttt{Arial}
   html:
     toc: true
     lang: mn
