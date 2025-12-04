@@ -12,8 +12,38 @@ format:
   html:
     toc: true
 ---
-
 \begin{titlepage}
+\centering
+{\Large \textbf{МОНГОЛ УЛСЫН ИХ СУРГУУЛЬ\\
+МЭДЭЭЛЛИЙН ТЕХНОЛОГИ, ЭЛЕКТРОНИКИЙН СУРГУУЛЬ}}\\[2cm]
+
+\includegraphics[width=0.4\textwidth]{images/numlogo.png}\\[1.5cm]
+
+{\Large\bfseries Магадлал статистик\par}
+{\Huge\bfseries Логистик регресс ашиглан орлогын түвшнийг илрүүлэх}\\[2cm]
+
+\raggedright
+
+\begin{tabular}{@{}l l}
+{\large \textbf{Шалгасан:}} & \hspace{8cm} Г. Махгал (Ахлах багш) \\[1cm]
+
+{\large \textbf{Гүйцэтгэсэн:}} & \hspace{8cm} Г. Жавхлан (22b1num3154) \\
+                               & \hspace{8cm} Б. Балжинням (22b1num6983) \\
+                               & \hspace{8cm} Т. Баасандорж (22b1num0004) \\
+                               & \hspace{8cm} Б. Солонгоо (23b1num1034) \\
+\end{tabular}
+
+
+
+% Доод талд байршил ба огноо
+\vfill
+\centering
+{\large Улаанбаатар}\\
+{\large \today\par}
+
+\end{titlepage}
+
+<!-- \begin{titlepage}
 \centering
 \vspace*{2cm}
 
@@ -42,7 +72,7 @@ format:
 
 {\large \today\par}
 
-\end{titlepage}
+\end{titlepage} -->
 
 \newpage
 
