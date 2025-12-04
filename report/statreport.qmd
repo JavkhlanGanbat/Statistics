@@ -166,9 +166,9 @@ $$
  
 Логистик регресс нь хоёртын ангилал хийх суурь загваруудын нэг юм. Шугаман регресс нь тасралтгүй утгуудыг таамагладаг бол логистик регресс нь аливаа инстанц нь тодорхой классын гишүүн байх магадлалыг тооцоолдог.
  
-Оролтын хувьсагч $\mathbf{x}$ -н хувьд
+Оролтын хувьсагч ${x}$ -н хувьд
 $$
-P(y = 1 \mid \mathbf{x})
+P(y = 1 \mid {x})
 $$
  
 буюу гаралт $y$ нь $1$-тэй тэнцүү байх магадлалыг олох зорилготой.
@@ -183,7 +183,7 @@ $$
 
 - $y_i$ = i-р түүвэр дээр ажиглагдсан утга 
 
-- $p_i$ = $P(y_i = 1 \mid \mathbf{x}_i)$ = i-р түүвэр класс 1-ийн гишүүн байх магадлал
+- $p_i$ = $P(y_i = 1 \mid {x}_i)$ = i-р түүвэр класс 1-ийн гишүүн байх магадлал
 
 Нэг түүврийн тархалт нь:
 
@@ -191,19 +191,19 @@ $$
 P(y_i \mid p_i) = p_i^{y_i}(1 - p_i)^{1 - y_i}.
 $$
 
-Одоо бид гарт оролтын онцлог $\mathbf{x}_i$-с класс 1-ийн магадлалыг илэрхийлэх функц хэрэгтэй байна.
+Одоо бид гарт оролтын онцлог ${x}_i$-с класс 1-ийн магадлалыг илэрхийлэх функц хэрэгтэй байна.
 
 Эхлээд бид оролтуудын шугаман тэгшитгэлийг бодно:
  
 $$
-z_i = \mathbf{w}^\top \mathbf{x}_i + b
+z_i = {w}^\top {x}_i + b
 $$
  
 Энд:
  
-- $\mathbf{w}$ = жингийн вектор (сурах параметрүүд)
+- ${w}$ = жингийн вектор (сурах параметрүүд)
 - $b$ = хазайлтын утга
-- $\mathbf{x}_i$ = онцлогийн вектор $i$
+- ${x}_i$ = онцлогийн вектор $i$
  
 ```python
 if issparse(X_array):
@@ -227,7 +227,7 @@ def sigmoid(self, z):
 Эндээс модел нэг түүврийн хувьд таамаглах магадлал нь дараах томъёгоор илэрхийлэгдэнэ:
 
 $$
-\hat{p}_i = P(y_i = 1 \mid \mathbf{x}_i) = \sigma(z_i) = \sigma(\mathbf{w}^\top \mathbf{x}_i + b)
+\hat{p}_i = P(y_i = 1 \mid {x}_i) = \sigma(z_i) = \sigma({w}^\top {x}_i + b)
 $$
 
 ## Эх олонгогийн үнэний хувь
@@ -303,7 +303,7 @@ $$
 Хэт том утгатай жингээс үүдэлтэй overfitting-ээс сэргийлнэ 
 
 $$
-\frac{\lambda}{2m}\|\mathbf{w}\|^2
+\frac{\lambda}{2m}\|{w}\|^2
 $$
 
 Энд:
@@ -312,12 +312,12 @@ $$
 
 - $m$ = түүврийн хэмжээ
 
-- $\|\mathbf{w}\|^2 = w_1^2 + w_2^2 + \cdots + w_n^2$
+- $\|{w}\|^2 = w_1^2 + w_2^2 + \cdots + w_n^2$
 
 Нийт алдаа:
 
 $$
-L = -\frac{1}{m}\sum_{i=1}^{m}\left[y_i\log(\hat{p}_i) + (1-y_i)\log(1-\hat{p}_i)\right] + \frac{\lambda}{2m}\|\mathbf{w}\|^2
+L = -\frac{1}{m}\sum_{i=1}^{m}\left[y_i\log(\hat{p}_i) + (1-y_i)\log(1-\hat{p}_i)\right] + \frac{\lambda}{2m}\|{w}\|^2
 $$
 
 ```python
@@ -345,24 +345,24 @@ def compute_loss(self, y_true, y_pred, sample_weights=None):
 
 Одоо манай алдагдлын функц тодорхойлогдсон. Гэхдээ нийт алдааг багасгахын тулд градиент бууруулалт гэж нэрлэгддэг аргыг ашиглана. Энэ тохиолдолд градиент гэдэг нь жингүүдийн аль чиглэлд өөрчлөгдөх үед алдаа нь хамгийн хурдтай өсөж буурахыг илэрхийлдэг вектор. 
 
-Градиент бууруулалтын үндсэн санаа нь уг градиентыг тооцоолоход оршино. 
+Градиент бууруулалтын үндсэн санаа нь уг градиентийг тооцоолоход оршино. 
 
 Жингийн градиент:
 
 $$
-\frac{\partial \mathcal{L}}{\partial \mathbf{w}} = \frac{1}{m} \mathbf{X}^\top (\hat{\mathbf{p}} - \mathbf{y}) + \frac{\lambda}{m} \mathbf{w}
+\frac{\partial \mathcal{L}}{\partial {w}} = \frac{1}{m} {X}^\top (\hat{{p}} - {y}) + \frac{\lambda}{m} {w}
 $$
 
-- $\mathbf{X} \in \mathbb{R}^{m \times n}$: онцлогийн матриц ($m \times n$)
-- $\mathbf{w} \in \mathbb{R}^{n \times 1}$: жингийн вектор 
-- $\hat{\mathbf{p}} \in \mathbb{R}^{m \times 1}$: түүвэр болгоны таамагласан утга 
-- $\mathbf{y} \in \mathbb{R}^{m \times 1}$: жинхэнэ утгууд 
+- ${X} \in \mathbb{R}^{m \times n}$: онцлогийн матриц ($m \times n$)
+- ${w} \in \mathbb{R}^{n \times 1}$: жингийн вектор 
+- $\hat{{p}} \in \mathbb{R}^{m \times 1}$: түүвэр болгоны таамагласан утга 
+- ${y} \in \mathbb{R}^{m \times 1}$: жинхэнэ утгууд 
 - $\lambda$: тогворжуулалтын хүч  
 
 Жингийн градиент нь $n \times 1$ вектор.
 
 $$
-\frac{\partial \mathcal{L}}{\partial \mathbf{w}} \in \mathbb{R}^{n \times 1}
+\frac{\partial \mathcal{L}}{\partial {w}} \in \mathbb{R}^{n \times 1}
 $$
 
 Хазайлтын градиент:
@@ -373,7 +373,7 @@ $$
 Жинг өөрчлөх дүрэм:
 
 $$
-\mathbf{w} \leftarrow \mathbf{w} - \alpha \frac{\partial \mathcal{L}}{\partial \mathbf{w}}
+{w} \leftarrow {w} - \alpha \frac{\partial \mathcal{L}}{\partial {w}}
 $$
 
 $$
@@ -453,14 +453,14 @@ self.learning_rate = self.initial_lr / (1 + self.lr_decay * iteration)
 Бидний моделийн градиент бууруулалтын дүрэм:
 
 $$
-\mathbf{w} \leftarrow \mathbf{w} - \alpha_t \frac{\partial L}{\partial \mathbf{w}}, \quad
-
-b \leftarrow b - \alpha_t \frac{\partial L}{\partial b}
+w \leftarrow w - \alpha_t \frac{\partial \mathcal{L}}{\partial w}, \quad
+b \leftarrow b - \alpha_t \frac{\partial \mathcal{L}}{\partial b}
 $$
+
 
 ### Early stopping
 
-Prevents overfitting by stopping training when the model stops improving on a validation set.
+Алдаа нь баталгаажуулалтын өгөгдөл дээр багасахаа болих үед сургалтыг зогсооно. "Overfitting" тохиолдохоос сэргийлэх арга.
 
 ```python
 if val_loss < best_val_loss:
@@ -504,7 +504,7 @@ def optimize_threshold(self, X, y_true, metric='f1'):
 ```
 ### Xavier/Glorot initialization
 
-Онцлогуудын жингийн вектороо $0$ утгатай зарлахын оронд $[1; n]$ хүртэлх санамсаргүй утгуудаар дүүргээд $\frac{1}{n}$-р үржүүлнэ. Жингийн утгуудын дундаж квадрат хазайлтыг $\frac{1}{n}$-р үржүүлснээр 
+Онцлогуудын жингийн вектороо $0$ утгатай зарлахын оронд $[1; n]$ хүртэлх санамсаргүй утгуудаар дүүргээд $\frac{1}{n}$-р үржүүлнэ. `numpy.random.randn()` функц нь стандарт хэвийн тархалтаас түүврүүдээ үүсгэдэг. $\mu = 0$, $\sigma^2 = 1$. $\frac{1}{n}$-р үржүүлснээр $\sigma^2 = \frac{1}{n}$ болох ба энэ нь градиент бууруулалт болон бусад машин сургалтын алгоритмуудын үр ашгийг нэмэгдүүлнэ. Градиентийг хэт их/бага утга руу тэмүүлэхээс сэргийлнэ.
 
 ```python
 self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
