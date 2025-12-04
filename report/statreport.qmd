@@ -179,7 +179,7 @@ $$
 - $\mathbf{w}$ = жингийн вектор (сурах параметрүүд)
 - $b$ = хазайлтын утга
 - $\mathbf{x}_i$ = түүврийн онцлогийн вектор $i$
-- $z_i$ = logit" буюу log odds
+- $z_i$ = "logit" буюу log odds
 
 ```python
 if issparse(X_array):
@@ -282,88 +282,61 @@ def compute_loss(self, y_true, y_pred, sample_weights=None):
 
 ## Градиент бууруулалт (Gradient descent)
 
-Одоо манай алдагдлын функц бий. Гэхдээ нийт алдааг хэрхэн багасгахын тулд градиент бууруулалт гэж нэрлэгддэг аргыг ашиглана. Энэ тохиолдолд градиент гэдэг нь жингүүдийн аль чиглэлд өөрчлөгдөх үед алдаа нь хамгийн хурдтай өсөж буурахыг илэрхийлдэг вектор.. Градиент бууруулалтын үндсэн санаа нь уг градиентыг тооцоолоход оршино. 
-
-Жин шинэчлэлийн дүрэм:
+Одоо манай алдагдлын функц тодорхойлогдсон. Гэхдээ нийт алдааг багасгахын тулд градиент бууруулалт гэж нэрлэгддэг аргыг ашиглана. Энэ тохиолдолд градиент гэдэг нь жингүүдийн аль чиглэлд өөрчлөгдөх үед алдаа нь хамгийн хурдтай өсөж буурахыг илэрхийлдэг вектор. Градиент бууруулалтын үндсэн санаа нь уг градиентыг тооцоолоход оршино. 
 
 $$
-\begin{aligned}
-w &\leftarrow w - \alpha \cdot \nabla_w J \\
-b &\leftarrow b - \alpha \cdot \nabla_b J
-\end{aligned}
+\frac{\partial \mathcal{L}}{\partial \mathbf{w}} = \frac{1}{m} \mathbf{X}^\top (\hat{\mathbf{p}} - \mathbf{y}) + \frac{\lambda}{m} \mathbf{w}
 $$
 
-Энд $\alpha$ бол **сурах хурд** — бид хэр хурдан алхах вэ гэдгийг тодорхойлдог. Градиентууд нь:
-
-$$
-\begin{aligned}
-\nabla_w J &= \frac{1}{m}X^\top(\hat{y} - y) + \frac{\lambda}{m}w \\
-\nabla_b J &= \frac{1}{m}\sum_{i=1}^{m}(\hat{y}^{(i)} - y^{(i)})
-\end{aligned}
+$$\frac{\partial \mathcal{L}}{\partial b} = \frac{1}{m} \sum_{i=1}^{m} (\hat{p}_i - y_i)
 $$
 
-Кодонд:
+Жинг өөрчлөх дүрэм:
+
+$$
+\mathbf{w} \leftarrow \mathbf{w} - \alpha \frac{\partial \mathcal{L}}{\partial \mathbf{w}}
+$$
+
+$$
+b \leftarrow b - \alpha \frac{\partial \mathcal{L}}{\partial b}
+$$
+
+Үүнд:
+
+- $\mathbf{X}$ = онцлогийн матриц ($m \times n$)
+
+- $\hat{\mathbf{p}}$ = таамагласан магадлалууд
+
+- $\mathbf{y}$ = жинхэнэ утгууд
+
+- $\alpha$ = сурах хурд нь болно. $\alpha$ нь тогтмол утга бөгөөд нэг сургалтын итераци болгонд жин, хазайлт хоёрын өөрчлөлтийг удирдах коэффициент.
 
 ```python
 def _compute_gradients(self, X, y, y_pred):
-    m = len(y)
-    error = y_pred - y
+    m = len(y_true)
+    # error
+    error = y_pred - y_true
+
+    if sample_weights is not None:
+        error = error * sample_weights
+
+    # Жингийн градиент
+    if issparse(X):
+        dw = (1/m) * X.T.dot(error)
+        dw = np.asarray(dw).flatten()
+    else:
+        dw = (1/m) * np.dot(X.T, error)
     
-    # Жингийн градиент + L2
-    dw = (1/m) * X.T.dot(error)
-    if self.reg_lambda > 0:
-        dw += (self.reg_lambda / m) * self.weights
-    
+    # + L2
+    dw += (self.reg_lambda / m) * self.weights.flatten()
+        
     # Bias-ийн градиент
     db = (1/m) * np.sum(error)
-    
+        
     return dw, db
 ```
 
-## Сурах хурдны бууралт: Оновчтой конвергенц
-
-Нэг асуудал: хэрэв сурах хурд хэт өндөр бол, алдагдлын функцийн минимумыг алдаж, "bounce around" хийж магадгүй. Хэт бага бол, маш удаан сургана. Шийдэл нь юу вэ? **Сурах хурдны бууралт** — эхлээд том алхамуудаар эхлээд, цаг хугацааны явцад багасгана:
-
-$$
-\alpha_t = \frac{\alpha_0}{1 + \text{decay} \cdot t}
-$$
-
-Энэ нь загварт эхэндээ хурдан суралцах, дараа нь минимумын ойролцоо нарийвчлалтай алхах боломж олгоно. Кодонд:
-
-```python
-for iteration in range(self.max_iter):
-    # Одоогийн сурах хурдыг тооцоолох
-    current_lr = self.initial_lr / (1 + self.lr_decay * iteration)
-    
-    # Жингүүдийг шинэчлэх
-    self.weights -= current_lr * dw
-    self.bias -= current_lr * db
-```
-
-## Классын жинлэлт: Тэнцвэргүй өгөгдөлтэй ажиллах
-
-Манай өгөгдөлд 76% нь $\leq50K$, 24% нь $>50K$ байна. Хэрэв бид юу ч хийхгүй бол, загвар зүгээр л "бүх зүйл $\leq50K$" гэж таамаглаж, 76% нарийвчлалд хүрч магадгүй — гэхдээ энэ нь ямар ч хэрэггүй юм!
-
-Шийдэл нь **классын жинлэлт** юм. Бид цөөнх классын (>50K) алдааг илүү "чухал" болгоно:
-
-$$
-w_{\text{class}} = \frac{m}{2 \cdot m_{\text{class}}}
-$$
-
-Кодонд:
-
-```python
-if self.class_weight == 'balanced':
-    classes = np.unique(y)
-    weights = len(y) / (len(classes) * np.bincount(y.astype(int)))
-    sample_weights = weights[y.astype(int)]
-else:
-    sample_weights = np.ones(len(y))
-
-# Алдагдлыг тооцоолохдоо sample_weights ашиглах
-loss = -np.mean(sample_weights * (y * np.log(y_pred_clipped) + 
-                                   (1 - y) * np.log(1 - y_pred_clipped)))
-```
+Параметрүүдийг градиентын эсрэг чиглэл рүү засах, градиент бууруулалт хийх алхам:
 
 ## Пайплайн
 
