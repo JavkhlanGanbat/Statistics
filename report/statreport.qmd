@@ -20,7 +20,7 @@ format:
 \includegraphics[width=0.4\textwidth]{images/numlogo.png}\\[1.5cm]
 
 {\Large\bfseries Магадлал статистик\par}
-{\Huge\bfseries Логистик регресс ашиглан орлогын түвшнийг илрүүлэх}\\[2cm]
+{\Huge\bfseries Логистик регресс ашиглан орлогын түвшинг илрүүлэх}\\[2cm]
 
 \raggedright
 
@@ -409,13 +409,106 @@ def _compute_gradients(self, X, y, y_pred):
 ```
 
 Сургалт нь дараах нөхцлийн аль нэг нь биелэхэд зогсоно:
-1. сургалтын алдаа тодорхой утга руу нийлэх үед
-2. `max_iter` 1000 давах үед
-3. баталгаажуулалтын алдаа нь багасахаа болих үед (early stopping)
+1. Сургалтын алдаа тодорхой утга руу нийлэх үед 
+2. `max_iter` 1000 давах үед 
+3. Баталгаажуулалтын алдаа нь багасахаа болих үед (early stopping) 
 
 ## Нэмэлт
 
+### Классын жин
 
+Бидний өгөгдөл нь классын хувьд тэнцвэргүй байсан тул $c \in \{0,1\}: \quad w_c = \frac{m}{2 \cdot m_c}$ зарчмаар классын жинг тооцоолсон. Ингэснээр манай загвар цөөнх класс дээр илүү их ач холбогдол өгнө.
+
+```python
+self.class_weights_ = self.compute_class_weights(y.flatten())
+sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()]).reshape(-1, 1)
+```
+
+- $m$: түүврийн хэмжээ
+
+- $m_c$: класс {c} -ийн түүврийн хэмжээ
+
+Түүвэр болгоны алдаа нь классынх нь жингээр үржигднэ:
+
+$$
+\ell_i = - w_{y_i} \big[y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)\big]
+$$
+
+### Сургалтын эрчмийг багасгах
+
+Сургалтын эрчим нь сургалтын $t$-р давталт дээр дараах зарчмаар багасна:
+
+$$
+\alpha_t = \frac{\alpha_0}{1 + \text{decay} \cdot t}
+$$
+
+- $\alpha_0$: анхны сургалтын хэмжээ
+
+- $decay$: тогтмол, гиперпараметр
+
+```python
+self.learning_rate = self.initial_lr / (1 + self.lr_decay * iteration)
+```
+
+Бидний моделийн градиент бууруулалтын дүрэм:
+
+$$
+\mathbf{w} \leftarrow \mathbf{w} - \alpha_t \frac{\partial L}{\partial \mathbf{w}}, \quad
+
+b \leftarrow b - \alpha_t \frac{\partial L}{\partial b}
+$$
+
+### Early stopping
+
+Prevents overfitting by stopping training when the model stops improving on a validation set.
+
+```python
+if val_loss < best_val_loss:
+    best_val_loss = val_loss
+    patience_counter = 0
+else:
+    patience_counter += 1
+    if patience_counter >= patience:
+        break
+```
+### Заагийн утгыг оновчлох
+
+Precision, recall, эсвэл F1 үзүүлэлтийг дээд зэргээр ихэсгэх заагийн утгыг олно. Энэ утгыг $[0.1, 0.9]$ интервалаас хайна.
+
+```python
+def optimize_threshold(self, X, y_true, metric='f1'):
+    probas = self.predict_proba(X)[:, 1]
+    thresholds = np.linspace(0.1, 0.9, 81)
+    
+    best_score = 0
+    best_threshold = 0.5
+    
+    for threshold in thresholds:
+        y_pred = (probas >= threshold).astype(int)
+        
+        if metric == 'f1':
+            score = f1_score(y_true, y_pred)
+        elif metric == 'precision':
+            score = precision_score(y_true, y_pred)
+        elif metric == 'recall':
+            score = recall_score(y_true, y_pred)
+        else:
+            score = f1_score(y_true, y_pred)
+        
+        if score > best_score:
+            best_score = score
+            best_threshold = threshold
+    
+    self.threshold = best_threshold
+    return best_threshold
+```
+### Xavier/Glorot initialization
+
+Онцлогуудын жингийн вектороо $0$ утгатай зарлахын оронд $[1; n]$ хүртэлх санамсаргүй утгуудаар дүүргээд $\frac{1}{n}$-р үржүүлнэ. Жингийн утгуудын дундаж квадрат хазайлтыг $\frac{1}{n}$-р үржүүлснээр 
+
+```python
+self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
+```
 
 # Үр дүн
 
