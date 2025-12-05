@@ -678,8 +678,7 @@ $$
 - Fatakdawala, M. (2018). Income Dataset. 
   <https://www.kaggle.com/datasets/mastmustu/income>
 
-**Анхаарах зүйл**: Энэ өгөгдлийг анх 1994 оны U.S. Census Current Population Survey судалгаагаар авч, Барри Бекр боловсруулалт хийж, Ронни Кохави UCI ML repository-д хандивласан. 
-(https://www.cs.toronto.edu/~delve/data/adult/adultDetail.html).
+**Анхаарах зүйл**: Энэ өгөгдлийг анх 1994 оны U.S. Census Current Population Survey судалгаагаар авч, Барри Бекр боловсруулалт хийж, Ронни Кохави UCI ML repository-д хандивласан. <https://www.cs.toronto.edu/~delve/data/adult/adultDetail.html>
 
 - Scikit-learn developers. *Logistic Regression: scikit-learn documentation*.  
   <https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression>
