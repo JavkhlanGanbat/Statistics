@@ -433,11 +433,18 @@ def _compute_gradients(self, X, y, y_pred):
 
 ### Классын жин
 
-Бидний өгөгдөл нь классын хувьд тэнцвэргүй байсан тул $c \in \{0,1\}: \quad w_c = \frac{m}{2 \cdot m_c}$ зарчмаар классын жинг тооцоолсон. Ингэснээр манай загвар цөөнх класс дээр илүү их ач холбогдол өгнө.
+Бидний өгөгдөл нь классын хувьд тэнцвэргүй байсан тул 
+
+$$
+c \in \{0,1\}: \quad w_c = \frac{m}{2 \cdot m_c}
+$$
+
+зарчмаар классын жинг тооцоолсон. Ингэснээр манай загвар цөөнх класс дээр илүү их ач холбогдол өгнө.
 
 ```python
 self.class_weights_ = self.compute_class_weights(y.flatten())
-sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()]).reshape(-1, 1)
+sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()])
+.reshape(-1, 1)
 ```
 
 - $m$: түүврийн хэмжээ
