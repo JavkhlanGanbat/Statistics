@@ -364,7 +364,7 @@ def compute_loss(self, y_true, y_pred, sample_weights=None):
 Жингийн градиент:
 
 $$
-\frac{\partial L}{\partial {w}} = \frac{1}{m} {X}^\top (\hat{{p}} - {y}) + \frac{\lambda}{m} {w}
+\frac{\partial L}{\partial {w}} \in \mathbb{R}^{n \times 1} = \frac{1}{m} {X}^\top (\hat{{p}} - {y}) + \frac{\lambda}{m} {w}
 $$
 
 - ${X} \in \mathbb{R}^{m \times n}$: онцлогийн матриц ($m \times n$)
@@ -372,12 +372,6 @@ $$
 - $\hat{{p}} \in \mathbb{R}^{m \times 1}$: түүвэр болгоны таамагласан утга 
 - ${y} \in \mathbb{R}^{m \times 1}$: жинхэнэ утгууд 
 - $\lambda$: тогворжуулалтын хүч  
-
-Жингийн градиент нь $n \times 1$ вектор.
-
-$$
-\frac{\partial L}{\partial {w}} \in \mathbb{R}^{n \times 1}
-$$
 
 Хазайлтын градиент:
 
