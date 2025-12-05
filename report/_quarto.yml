@@ -34,6 +34,5 @@ execute:
 crossref: false
 
 metadata:
-  bibliography: references.bib
   link-citations: true
   lang: mn

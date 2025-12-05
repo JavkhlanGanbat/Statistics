@@ -1,7 +1,6 @@
 ---
 lang: mn
-bibliography: references.bib
-link-citations: true
+nocite: '@*'
 format:
   pdf:
     toc: false
@@ -9,6 +8,8 @@ format:
       text: |
         \usepackage{graphicx}
         \usepackage{geometry}
+        \usepackage{enumitem}
+        \setlist[itemize]{leftmargin=*}
   html:
     toc: true
 ---
@@ -28,9 +29,9 @@ format:
 {\large \textbf{Шалгасан:}} & \hspace{8cm} Г. Махгал (Ахлах багш) \\[1cm]
 
 {\large \textbf{Гүйцэтгэсэн:}} & \hspace{8cm} Г. Жавхлан (22b1num3154) \\
+                               & \hspace{8cm} Б. Солонгоо (23b1num1034) \\
                                & \hspace{8cm} Б. Балжинням (22b1num6983) \\
                                & \hspace{8cm} Т. Баасандорж (22b1num0004) \\
-                               & \hspace{8cm} Б. Солонгоо (23b1num1034) \\
 \end{tabular}
 
 
@@ -193,7 +194,7 @@ $$
 
 Одоо бид гарт оролтын онцлог ${x}_i$-с класс 1-ийн магадлалыг илэрхийлэх функц хэрэгтэй байна.
 
-Эхлээд бид оролтуудын шугаман тэгшитгэлийг бодно:
+Эхлээд бид оролтуудын шугалан тэгшитгэлийг бодно:
  
 $$
 z_i = {w}^\top {x}_i + b
@@ -232,7 +233,7 @@ $$
 
 ## Эх олонгогийн үнэний хувь
 
-Бүх $y_i$ нь Бернуллийн санамсаргүй утга. Өгөгдлийн цэгүүд нь бусдаасаа хамааралгүй гэж үзвэл
+Бүх $y_i$ нь Бернуллийн санамсаргүй утга. Өгөгдлийн цэгүүд нь бусдаасаа хамааргүй гэж үзвэл
 $w, b$ хоёр параметрүүдийг өгсөн үед бүх $y_i$-г ажиглах магадлал нь:
 
 $$
@@ -257,7 +258,7 @@ y_i \log(\hat{p}_i) + (1-y_i)\log(1 - \hat{p}_i)
 \right]
 $$
 
-Энийг алдааны функц болгохын тулд $-1$-р үржүүлнэ. Өөрөөр хэлбэл binary cross-entropy loss фунцкээ гаргаж ирлээ.
+Энэнийг алдааны функц болгохын тулд $-1$-р үржүүлнэ. Өөрөөр хэлбэл binary cross-entropy loss фунцкээ гаргаж ирлээ.
 
 $$
 L_{\text{CE}}(w,b) = 
@@ -370,7 +371,7 @@ $$
 $$\frac{\partial \mathcal{L}}{\partial b} = \frac{1}{m} \sum_{i=1}^{m} (\hat{p}_i - y_i)
 $$
 
-Жинг өөрчлөх дүрэм:
+Жингийн градиент бууруулах дүрэм:
 
 $$
 {w} \leftarrow {w} - \alpha \frac{\partial \mathcal{L}}{\partial {w}}
@@ -428,7 +429,7 @@ sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()]).res
 
 - $m_c$: класс {c} -ийн түүврийн хэмжээ
 
-Түүвэр болгоны алдаа нь классынх нь жингээр үржигднэ:
+Түүвэр болгоны алдаа нь классынх нь жингээр үржигдэнэ:
 
 $$
 \ell_i = - w_{y_i} \big[y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)\big]
@@ -473,7 +474,7 @@ else:
 ```
 ### Заагийн утгыг оновчлох
 
-Precision, recall, эсвэл F1 үзүүлэлтийг дээд зэргээр ихэсгэх заагийн утгыг олно. Энэ утгыг $[0.1, 0.9]$ интервалаас хайна.
+Precision, recall, эсвэл F1 үзүүлэлтүүдийг дээд зэргээр ихэсгэх заагийн утгыг олно. Энэ утгыг $[0.1, 0.9]$ интервалаас хайна.
 
 ```python
 def optimize_threshold(self, X, y_true, metric='f1'):
@@ -575,7 +576,7 @@ self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
 
 ## Ерөнхий гүйцэтгэл:
 
-Манай загвар эцэст нь хамааран хувьсагч $y_i$-н утгыг зөв таахад л оршино. Энэ хувьсагч нь $\{0, 1\}$ гэсэн хоёрхон утга авах ба энэ нь түүврийн класс болно. Бид баталгаажуулалтын өгөгдөл дээр $0$ классын түүвэрт зөв таамаглал гаргах тоолонд true negative, харин буруу гаргахад false negative үзүүлэлт 1-ээр нэмэгднэ. Мөн адил $1$ класс дээр зөв таах нь true positive, алдах нь false positive үзүүлэлтүүд нэмэгднэ.
+Манай загвар эцэст нь хамааран хувьсагч $y_i$-н утгыг зөв таахад л оршино. Энэ хувьсагч нь $\{0, 1\}$ гэсэн хоёрхон утга авах ба энэ нь түүврийн класс болно. Бид баталгаажуулалтын өгөгдөл дээр $0$ классын түүвэрт зөв таамаглал гаргах тоолонд true negative, харин буруу гаргахад false negative үзүүлэлт 1-ээр нэмэгдэнэ. Мөн адил $1$ класс дээр зөв таах нь true positive, алдах нь false positive үзүүлэлтүүд нэмэгдэнэ.
 
 $$
 Accuracy = \frac{TP + TN}{TP + TN + FP + FN}
@@ -608,7 +609,7 @@ $$
 
 ## Онцлогийн ач холбогдол
 
-Сигмоид функц шугаман нийлбэрийг ($z = w_1 x_1 + w_2 x_2 + \dots + w_n x_n + b$) магадлал руу хөрвүүлдэг. 
+Сигмоид функц шуглан нийлбэрийг ($z = w_1 x_1 + w_2 x_2 + \dots + w_n x_n + b$) магадлал руу хөрвүүлдэг. 
 
 
 - $z \to +\infty$, үед $e^{-z} \to 0$, учир:
@@ -629,13 +630,11 @@ $$
 
 ## Магадлалын тархалт
 
-Зарим >50K орлоготой хүмүүс өндөр магадлалтай (0.9+) гарч байгаа ч, зарим нь харьцангуй бага магадлалтай (0.2–0.4) байна. Энэ магадлалын давхцал нь зарим өгөгдөл дээр тодорхой ангилалт хийх бэрхшээлийг харуулж байна.
+Зарим $>50K$ орлоготой хүмүүс өндөр магадлалтай (0.9+) гарч байгаа ч, зарим нь харьцангуй бага магадлалтай (0.2–0.4) байна. Энэ магадлалын давхцал нь зарим өгөгдөл дээр тодорхой ангилалт хийх бэрхшээлийг харуулж байна.
 
-Сигмоид функц нь загварын гаргасан тоон үнэлгээг (score) магадлал руу хөрвүүлдэг. Зүүн талд математик функц, баруун талд бидний загварын бодит таамаглалууд хэрхэн тархсаныг харуулж байна:
+Зүүн талд математик функц, баруун талд бидний загварын бодит таамаглалууд хэрхэн тархсаныг харуулж байна:
 
 ![Сигмоид функц ба магадлалын тархалт](images/sigmoid.png)
-
-Зүүн талын график нь онолын хэсэг — $z=0$ үед магадлал яг 0.5 байна. Харин баруун талын гистограм нь бодит байдлыг харуулна:
 
 *   **Улаан хэсэг ($\leq50K$):** Ихэнх нь $0 - 0.3$ магадлалтай байна. Загвар энэ хүмүүсийг бага орлоготой гэдэгтээ нэлээд итгэлтэй байна.
 *   **Ногоон хэсэг ($>50K$):** Тархалт нь $0.2$ - оос $0.9$ хүртэл маш өргөн байна. Энд давхцал их байгааг анзаараарай.
@@ -644,21 +643,32 @@ $$
 
 Энэхүү төсөл нь логистик регрессийг практикт хэрэгжүүлэх явцдаа зөвхөн алгоритмын ажиллагаа төдийгүй өгөгдлийн чанар, статистик ойлголтууд загварын гүйцэтгэлд ямар их нөлөөтэйг бодитоор мэдрэх боломж олголоо. Загвар тогтвортой суралцаж, overfitting ажиглагдаагүй нь L2 арга болон градиент бууруулалт оновчтой байсны илрэл юм. Гэсэн хэдий ч гүйцэтгэл, ялангуяа F1 үнэлгээ нь $0.66$ давахгүй байгаа нь өгөгдлийн бүтэц, классын тэнцвэргүй байдал зэрэгтэй холбоотой.
 
-Ирээдүйд Random forest, decision tree зэрэг шугаман бус загваруудыг ашиглавал >50K орлоготой хүмүүсийг илүү найдвартай таамаглах боломжтой. Гол сургамж нь зөвхөн accuracy-аас гадна precision, recall, F1 үзүүлэлтүүдийг ойлгон, ашиглах загвараа болон өгөгдлийн чанарыг хамтад нь үнэлэх хэрэгтэй гэдгийг харуулж байна.
+Ирээдүйд Random forest, decision tree зэрэг шугалан бус загваруудыг ашиглавал >50K орлоготой хүмүүсийг илүү найдвартай таамаглах боломжтой. Гол сургамж нь зөвхөн accuracy-аас гадна precision, recall, F1 үзүүлэлтүүдийг ойлгон, ашиглах загвараа болон өгөгдлийн чанарыг хамтад нь үнэлэх хэрэгтэй гэдгийг харуулж байна.
 
 # Багийн гишүүдийн оролцоо
 
 Багаараа цаг товлон уулзаж, зорилго болон сэдэв сонголтоо хийсэн. Хүн бүр өөрсдийн хийх ажлыг хуваан авч гэр гэрээсээ хийхээр болсон. Github дээр шинэ төсөл үүсгэж 4 гишүүд бүгд жигд оролцон хийсэн.
 
-# Ишлэл зүүлт
-- Scikit - learn developers. (n.d.). *Logistic Regression — scikit‑learn documentation*. Retrieved from https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression  
+# Ном зүй
 
-- StatQuest. (n.d.). *Logistic Regression* [YouTube playlist]. Retrieved from https://www.youtube.com/watch?v=yIYKR4sgzI8&list=PLblh5JKOoLUKxzEP5HA2d-Li7IJkHfXSe  
+## References
 
-- Russell, S., & Norvig, P. (2016). *Artificial Intelligence: A Modern Approach* (3rd ed.).  
+- Fatakdawala, Mustafa. (2018). *Income Dataset* 
+  <https://www.kaggle.com/datasets/mastmustu/income>
 
-- Google Developers. (n.d.). *Logistic regression: Loss and regularization*. Retrieved from https://developers.google.com/machine-learning/crash-course/logistic-regression/loss-regularization  :contentReference[oaicite:0]{index=0}  
+- Scikit-learn developers. (2024). *Logistic Regression: scikit-learn documentation*.  
+  <https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression>
 
-- Danushka. (n.d.). *Logistic Regression (lecture notes/pdf)*. Retrieved from https://danushka.net/lect/dm/logreg.pdf  :contentReference[oaicite:1]{index=1}  
+- StatQuest. (2024). *Logistic Regression*.  
+  <https://www.youtube.com/watch?v=yIYKR4sgzI8&list=PLblh5JKOoLUKxzEP5HA2d-Li7IJkHfXSe>
 
-- Curtis, F. E., & Scheinberg, K. (2017). *Optimization Methods for Supervised Machine Learning: From Linear Models to Deep Learning*. arXiv preprint arXiv:1706.10207.  :contentReference[oaicite:2]{index=2}  
+- Russell, S., & Norvig, P. (2016). *Artificial Intelligence: A Modern Approach* (3rd ed.). Pearson.
+
+- Google Developers. (n.d.). *Logistic regression: Loss and regularization*.  
+  <https://developers.google.com/machine-learning/crash-course/logistic-regression/loss-regularization>
+
+- Danushka. (n.d.). *Logistic Regression* (lecture notes).  
+  <https://danushka.net/lect/dm/logreg.pdf>
+
+- Sanderson, G. (2016). *Essence of Linear Algebra*.  
+  <https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab>
