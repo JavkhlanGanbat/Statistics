@@ -367,7 +367,7 @@ $$
 \frac{\partial L}{\partial {w}} \in \mathbb{R}^{n \times 1} = \frac{1}{m} {X}^\top (\hat{{p}} - {y}) + \frac{\lambda}{m} {w}
 $$
 
-- ${X} \in \mathbb{R}^{m \times n}$: онцлогийн матриц ($m \times n$)
+- ${X} \in \mathbb{R}^{m \times n}$: онцлогийн матриц
 - ${w} \in \mathbb{R}^{n \times 1}$: жингийн вектор 
 - $\hat{{p}} \in \mathbb{R}^{m \times 1}$: түүвэр болгоны таамагласан утга 
 - ${y} \in \mathbb{R}^{m \times 1}$: жинхэнэ утгууд 
