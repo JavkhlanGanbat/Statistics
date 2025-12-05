@@ -510,6 +510,67 @@ def optimize_threshold(self, X, y_true, metric='f1'):
 self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
 ```
 
+## Үндсэн fit() функц
+
+```python
+    def fit(self, X, y, X_val=None, y_val=None):
+        if issparse(X):
+            m, n = X.shape
+            X_array = X
+        else:
+            X = np.array(X)
+            m, n = X.shape
+            X_array = X
+        
+        y = np.array(y).reshape(-1, 1)
+        
+        self.class_weights_ = self.compute_class_weights(y.flatten())
+        sample_weights = np.array([self.class_weights_[cls] for cls in y.flatten()]).reshape(-1, 1)
+        
+        self.weights = np.random.randn(n, 1) * np.sqrt(1.0 / n)
+        self.bias = 0
+        
+        prev_loss = float('inf')
+        best_val_loss = float('inf')
+        patience_counter = 0
+        patience = 10
+        
+        for iteration in range(self.max_iter):
+            self.learning_rate = self.initial_lr / (1 + self.lr_decay * iteration)
+            
+            if issparse(X_array):
+                z = X_array.dot(self.weights) + self.bias
+                z = np.asarray(z).flatten().reshape(-1, 1)
+            else:
+                z = np.dot(X_array, self.weights) + self.bias
+            
+            y_pred = self.sigmoid(z)
+            
+            loss = self.compute_loss(y, y_pred, sample_weights)
+            self.losses.append(loss)
+            
+            dw, db = self.compute_gradients(X_array, y, y_pred, sample_weights)
+            
+            self.weights -= self.learning_rate * dw.reshape(-1, 1)
+            self.bias -= self.learning_rate * db
+            
+            if X_val is not None and y_val is not None:
+                val_loss = self._compute_val_loss(X_val, y_val)
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        break
+
+            if abs(prev_loss - loss) < self.tol:
+                break
+            prev_loss = loss
+        
+        return self
+```
+
 # Үр дүн
 
 ## Ерөнхий гүйцэтгэл:
